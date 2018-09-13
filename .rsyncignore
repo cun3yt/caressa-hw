@@ -1,4 +1,6 @@
 .rsyncignore
 .gitignore
+.git/
+.idea/
+venv/
 build.sh
-
