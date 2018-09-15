@@ -1,3 +1,5 @@
 gpiozero==1.4.1
 RPi.GPIO==0.6.3
 ipdb==0.11
+omxplayer-wrapper==0.2.5
+dbus-python

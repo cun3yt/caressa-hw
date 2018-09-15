@@ -1,7 +1,8 @@
-import os
-import subprocess
 from gpiozero import LED, Button
 from signal import pause
+from inspect import stack as call_stack
+from omxplayer.player import OMXPlayer
+from pathlib import Path
 
 
 class LedWithState:
@@ -18,21 +19,21 @@ class LedWithState:
 
 
 class AudioPlayer:
+    # "omxplayer ./sample_audio_small.mp3 -o local --pos 00:00:25"
+
     def __init__(self):
-        self.audio_file = '~/sample_audio_small.mp3'
-        self.process = None
+        self.audio_file = Path('/home/pi/sample_audio_small.mp3')
         self.state = False
 
     def _play(self):
-        # "omxplayer ./sample_audio_small.mp3 -o local --pos 00:00:25"
-        cmd = 'omxplayer -o local {file}'.format(file=self.audio_file)
-        self.process = subprocess.Popen(cmd, shell=True)
-        print('process id: {}'.format(self.process.pid))
+        print('{} is called'.format(call_stack()[0][3]))
+        self.player = OMXPlayer(self.audio_file, args=['-o', 'local'])
+        pass
 
     def _stop(self):
-        cmd = 'killall omxplayer.bin'
-        os.system(cmd)
-        print('must be terminated with this: {}'.format(cmd))
+        print('{} is called'.format(call_stack()[0][3]))
+        self.player.quit()
+        pass
 
     def toggle(self):
         if self.state:
