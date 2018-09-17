@@ -3,19 +3,15 @@ from signal import pause
 from inspect import stack as call_stack
 from omxplayer.player import OMXPlayer
 from collections import deque as Q
-from datetime import timedelta
 import logging
 import requests
+from utils import deep_get
+from audio_client import AudioClient
+import json
 
 logging.basicConfig(level=logging.INFO)
 
 player_log = logging.getLogger("player_log")
-
-
-class Utils:
-    @staticmethod
-    def sec_to_hours(sec):
-        return str(timedelta(seconds=sec))
 
 
 class LedWithState:
@@ -31,52 +27,17 @@ class LedWithState:
         self.state = not self.state
 
 
-class Server:
-    def __init__(self):
-        self.data = [
-            'https://s3-us-west-1.amazonaws.com/caressa-prod/song-set/World/Zamfir/08+La+Valse+Muzeta.mp3',
-            'https://s3-us-west-1.amazonaws.com/caressa-prod/song-set/World/Zamfir/06+La+Paloma.mp3',
-            'https://s3-us-west-1.amazonaws.com/caressa-prod/song-set/World/Zamfir/03+Clair+De+Lune.mp3',
-            'https://s3-us-west-1.amazonaws.com/caressa-prod/song-set/World/Tamure+Tahitien/11+Motu+Painu.mp3',
-            'https://s3-us-west-1.amazonaws.com/caressa-prod/song-set/Wedding/'
-            'Various+-+Baroque+for+Brides+To+Be+-+11+-+Clarke-+Trumpet+Voluntary.mp3',
-        ]
-        self.item = 0
-        self.offset = 0
-
-    def get_item(self):
-        return {
-            'token': self.item,
-            'url': self.data[self.item],
-            'offset': self.offset,
-        }
-
-    def next_item(self, token):
-        next_token = token+1 if isinstance(token, int) else 0
-        next_token = next_token if next_token < len(self.data) else 0
-
-        return {
-            'token': next_token,
-            'url': self.data[next_token],
-        }
-
-    def set_state(self, token, offset=0):
-        self.item = token
-        self.offset = offset
-
-
 class AudioPlayer:
     # "omxplayer ./sample_audio_small.mp3 -o local --pos 00:00:25"
     # self._player = OMXPlayer(self.audio_file, args=['-o', 'local'], pause=True)
 
-    def __init__(self, server):
-        self.client = server
+    def __init__(self, api_client):
+        self.client = api_client
 
         self.token = None
         self._player = None
 
         self.queue = Q()
-        self.queue_up()
 
         self.state = False
 
@@ -86,63 +47,77 @@ class AudioPlayer:
         except IndexError:
             return None
 
-    def queue_up(self):
-        item = self.client.next_item(self.token) if self.token else self.client.get_item()
-        self.queue.append(item)
+    def queue_up(self, token):
+        response = self.client.send_playback_nearly_finished_signal()
+        res_body = json.loads(response.text)
+        directive = deep_get(res_body, 'response.directives')[0]
+        assert(deep_get(directive, 'type') == 'AudioPlayer.Play')
+        assert(deep_get(directive, 'playBehavior') == 'ENQUEUE')
 
-        token = item.get('token')
-        next_item = self.client.next_item(token)
-        self.queue.append(next_item)
+        stream = deep_get(directive, 'audioItem.stream')
+
+        assert(stream.get('expectedPreviousToken') == self.token)
+
+        self.queue.append({
+            'url': stream.get('url'),
+            'token': stream.get('token'),
+            'offset_in_seconds': stream.get('offsetInMilliseconds', 0) / 1000,
+        })
 
     def _play(self):
         print('{} is called'.format(call_stack()[0][3]))
 
-        item = self.fetch_from_queue()
+        response = self.client.launch()
 
-        if item is None:
-            self.queue_up()
-            item = self.fetch_from_queue()
+        res_body = json.loads(response.text)
 
-        url = item.get('url')
-        token = item.get('token')
+        print(type(res_body), res_body)
+
+        directive = deep_get(res_body, 'response.directives')[0]
+        assert(deep_get(directive, 'type') == 'AudioPlayer.Play')
+
+        audio_url = deep_get(directive, 'audioItem.stream.url')
+        token = deep_get(directive, 'audioItem.stream.token')
+        offset_in_seconds = deep_get(directive, 'audioItem.stream.offsetInMilliseconds', 0) / 1000
 
         if self._player is None:
-            self._player = OMXPlayer(url, args=['-o', 'local'], pause=True)
+            self._player = OMXPlayer(audio_url, args=['-o', 'local'], pause=True)
         else:
-            self._player.load(url, pause=True)
+            self._player.load(audio_url, pause=True)
 
+        self._player.set_position(offset_in_seconds)
         self._player.play()
-
         self.token = token
-        self.client.set_state(self.token)
+
+        self.queue_up(token=token)
 
     def _pause(self):
         print('{} is called'.format(call_stack()[0][3]))
         self._player.pause()
-        offset = self._player.position
-        self.client.set_state(self.token, offset)
+        self.client.pause()
+        # offset_in_seconds = self._player.position
 
     def play_pause(self):
         if self.state:
             self._pause()
-        elif self._player is None:
-            self._play()
         else:
-            self._player.play()
+            self._play()
+
         self.state = not self.state
 
     def next(self):
         print('{} is called'.format(call_stack()[0][3]))
-        if self._player is None:
-            return
-        self._play()
+        # if self._player is None:
+        #     return
+        # self._play()
 
 
 class Environment:
     def __init__(self, led_id, play_btn_id, next_btn_id):
-        server = Server()
         self.led = LedWithState(led_id)
-        self.player = AudioPlayer(server)
+
+        client = AudioClient(url='https://cmertayak.serveo.net/streaming')
+        self.player = AudioPlayer(client)
 
         self.play_btn = Button(play_btn_id)
         self.play_btn.when_activated = self._play_pause
