@@ -1,2 +1,5 @@
 .idea/
 venv/
+.envrc
+__pycache__
+.DS_Store
