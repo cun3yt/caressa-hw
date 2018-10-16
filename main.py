@@ -3,7 +3,6 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib     # Gdk, GObject,
 
 from gpiozero import Button, LED
-import time
 from threading import Thread
 
 from audio_client import AudioClient
