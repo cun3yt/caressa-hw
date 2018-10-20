@@ -5,6 +5,7 @@ client = Client(twilio_account_sid, twilio_auth_token)
 
 
 def make_urgency_call(*args, **kwargs):
+    print('making urgency call')
     call = client.calls.create(
         to="+14155337523",
         from_="+15109015152",
