@@ -3,7 +3,6 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib     # Gdk, GObject,
 
 from gpiozero import Button, LED
-import time
 from threading import Thread
 
 from audio_client import AudioClient
@@ -15,20 +14,26 @@ from phone_service import make_urgency_call
 SERVER_URL = '{}/streaming'.format(SUBDOMAIN)
 USER_ID = 1
 
+LEFT_BLACK_BTN_ID = 7
+RIGHT_BLACK_BTN_ID = 8
+BIG_RED_BTN_ID = 9
+SMALL_RED_BTN_ID = 10
+
+
 user_channels = [
     'family.senior.{}'.format(USER_ID),
     'Channel.CA.Fremont.Facility.Brookdale',
 ]
 
-_voice_processing_indicator = LED(7)
-
 
 def set_processing_indicator():
-    _voice_processing_indicator.blink()
+    print('set_processing_indicator blink')
+    # _voice_processing_indicator.blink()
 
 
 def set_processing_off_indicator():
-    _voice_processing_indicator.off()
+    print('set_processing_indicator off')
+    # _voice_processing_indicator.off()
 
 
 client = AudioClient(url=SERVER_URL)
@@ -36,16 +41,17 @@ player = AudioPlayer(client,
                      processing_indicator_fn=set_processing_indicator,
                      processing_off_indicator=set_processing_off_indicator)
 
-volume_up_btn = Button(8)
+
+volume_up_btn = Button(RIGHT_BLACK_BTN_ID)
 volume_up_btn.when_pressed = player.volume_up
 
-volume_down_btn = Button(9)
+volume_down_btn = Button(LEFT_BLACK_BTN_ID)
 volume_down_btn.when_pressed = player.volume_down
 
-next_btn = Button(10)
+next_btn = Button(BIG_RED_BTN_ID)
 next_btn.when_pressed = lambda *args, **kwargs: print('next btn pressed')
 
-emergency_btn = Button(11)
+emergency_btn = Button(SMALL_RED_BTN_ID)
 emergency_btn.when_pressed = make_urgency_call
 
 
