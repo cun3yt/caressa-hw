@@ -51,6 +51,11 @@ class ListPlayer:
             self._list_finished_callback()
             return
 
+        self.play_next()
+
+    def play_next(self):
+        self._content_follow_fn = None
+
         content = self.queue.popleft()  # type: Audio
         self._content_follow_fn = content.follow_up_fn
 
