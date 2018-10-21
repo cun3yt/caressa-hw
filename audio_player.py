@@ -43,8 +43,12 @@ class AudioPlayer:
 
     @property
     def player(self):
-        player_name = self.current_state.current_player
+        player_name = self.current_player_name
         return self.players[player_name]
+
+    @property
+    def current_player_name(self):
+        return self.current_state.current_player
 
     def save_state(self):
         print('saving state: {}'.format(self.current_state))
@@ -117,6 +121,14 @@ class AudioPlayer:
         print('volume down from {} to {}'.format(current_vol, new_vol))
         self._mixer.setvolume(new_vol)
 
+    def next_command(self, *args, **kwargs):
+        print('next command came... current player: {}'.format(self.current_player_name))
+        if self.current_player_name != 'main':
+            return
+
+        fn = self.player.play_next if self.current_state.playing_state else self.play_pause
+        fn()
+
     @staticmethod
     def notify():
         os_call(['aplay', './sounds/notification-doorbell.wav'])
@@ -172,15 +184,13 @@ class AudioPlayer:
         return audio_url
 
     def _play(self):
-        print('{} is called, current_player: {}'.format(call_stack()[0][3],
-                                                        self.current_state.current_player))
+        print('{} is called, current_player: {}'.format(call_stack()[0][3], self.current_player_name))
         self.player.play()
         self.current_state.playing_state = True
         self._set_led_state()
 
     def _pause(self):
-        print('{} is called, current_player: {}'.format(call_stack()[0][3],
-                                                        self.current_state.current_player))
+        print('{} is called, current_player: {}'.format(call_stack()[0][3], self.current_player_name))
         self.current_state.playing_state = False
         if not self.player.is_playing():
             return

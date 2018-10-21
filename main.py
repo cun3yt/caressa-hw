@@ -26,20 +26,8 @@ user_channels = [
 ]
 
 
-def set_processing_indicator():
-    print('set_processing_indicator blink')
-    # _voice_processing_indicator.blink()
-
-
-def set_processing_off_indicator():
-    print('set_processing_indicator off')
-    # _voice_processing_indicator.off()
-
-
 client = AudioClient(url=SERVER_URL)
-player = AudioPlayer(client,
-                     processing_indicator_fn=set_processing_indicator,
-                     processing_off_indicator=set_processing_off_indicator)
+player = AudioPlayer(client)
 
 
 volume_up_btn = Button(RIGHT_BLACK_BTN_ID)
@@ -49,7 +37,7 @@ volume_down_btn = Button(LEFT_BLACK_BTN_ID)
 volume_down_btn.when_pressed = player.volume_down
 
 next_btn = Button(BIG_RED_BTN_ID)
-next_btn.when_pressed = lambda *args, **kwargs: print('next btn pressed')
+next_btn.when_pressed = player.next_command
 
 emergency_btn = Button(SMALL_RED_BTN_ID)
 emergency_btn.when_pressed = make_urgency_call
