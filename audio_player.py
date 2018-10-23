@@ -202,6 +202,10 @@ class AudioPlayer:
     def _set_led_state(self, led_state=None):
         led = voicehat.get_led()
 
+        if self.voice_mail_player.count > 0:
+            led.set_state(voicehat.LED.BLINK)
+            return
+
         if led_state:
             led.set_state(led_state)
             return
