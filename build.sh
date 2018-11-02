@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-HOST='rasp'
+HOST='rasp2'
 USER='pi'
 REMOTE_DIR='/home/pi/Work'
-MAIN_CODE='main_aiy.py'
+MAIN_CODE='main.py'
 
-rsync -rvz --delete --exclude-from=.rsyncignore ~/Work/caressa_hw/ "${USER}@${HOST}:${REMOTE_DIR}"
+rsync -rvz --delete --exclude-from=.rsyncignore ~/Projects/caressa-hw/ "${USER}@${HOST}:${REMOTE_DIR}"
+
 
 echo "RSync Done..."
 echo "Running Script"

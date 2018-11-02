@@ -15,4 +15,4 @@ pusher = pysher.Pusher(key=pusher_key_id,
                        secure=True,
                        secret=pusher_secret)
 
-SUBDOMAIN = 'https://65273eb7.ngrok.io'
+SUBDOMAIN = getenv('SUBDOMAIN')
