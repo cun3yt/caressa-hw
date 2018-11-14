@@ -40,3 +40,10 @@ There are environment variables. All are supposed to be in `settings.py`.
 ## Todo
 
 * Remote run from PyCharm for debugging...
+
+## Caressa Main Process Unit/Service File
+
+* ```caressa.service``` is a unit file for make main process run whenever network is online.
+* ```.envservice``` is a dependency for the ```caressa.service``` which is in .gitignore ask a colleague for the file.
+* ```caressa.service``` file needs to be inside of ```/etc/systemd/system/```
+* Finally, run ```systemctl enable caressa.service``` for enable the service.
