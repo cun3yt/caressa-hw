@@ -9,6 +9,7 @@ from utils import deep_get
 
 from state import State, StateStack
 from list_player import ListPlayer
+from audio_client import AudioClient
 
 
 BTN_DEBOUNCE_TIME = 0.15
@@ -23,7 +24,7 @@ class AudioPlayer:
     # todo:     1. unheard voice_mails
     # todo:     2. urgent_mails that are not delivered in the last X amount of time
 
-    def __init__(self, api_client, **kwargs):
+    def __init__(self, api_client: AudioClient, **kwargs):
         self.client = api_client
         self.token = None
 

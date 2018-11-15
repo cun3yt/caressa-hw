@@ -25,7 +25,20 @@ class AudioClient:
         self.user_id = kwargs.get('user_id', 'hw-user-id')
         self.device_id = kwargs.get('device_id', 'hw-user-id')
 
-    def request(self, **kwargs):
+    def launch(self):
+        res = self._request(request_type='LaunchRequest')
+        return res
+
+    def pause(self):
+        return self._request(request_type='PlaybackController.PauseCommandIssued')
+
+    def send_playback_nearly_finished_signal(self):
+        return self._request(request_type='AudioPlayer.PlaybackNearlyFinished')
+
+    def send_playback_started_signal(self, token):
+        self._request(request_type='AudioPlayer.PlaybackStarted', token=token)
+
+    def _request(self, **kwargs):
         request_type = kwargs.get('request_type', None)
         intent_name = kwargs.get('intent_name', None)
         token = kwargs.get('token', None)
@@ -58,16 +71,3 @@ class AudioClient:
         }
 
         return requests.post(self._url, json=body)
-
-    def launch(self):
-        res = self.request(request_type='LaunchRequest')
-        return res
-
-    def pause(self):
-        return self.request(request_type='PlaybackController.PauseCommandIssued')
-
-    def send_playback_nearly_finished_signal(self):
-        return self.request(request_type='AudioPlayer.PlaybackNearlyFinished')
-
-    def send_playback_started_signal(self, token):
-        self.request(request_type='AudioPlayer.PlaybackStarted', token=token)
