@@ -27,7 +27,7 @@ There are environment variables. All are supposed to be in `settings.py`.
 
 ## On Mac:
 
-(based on this: https://apple.stackexchange.com/questions/169601/no-package-libffi-found-in-homebrew-virtual-environment)
+(based on this: http://bit.ly/2St8qiT)
 * In order to install the pygobject3 it requires the PKG_CONFIG_PATH varibale for `libffi`: 
 `export PKG_CONFIG_PATH=/usr/local/Cellar/libffi/3.2.1/lib/pkgconfig/`
 * `brew install pygobject3`
@@ -44,6 +44,8 @@ There are environment variables. All are supposed to be in `settings.py`.
 ## Caressa Main Process Unit/Service File
 
 * `caressa.service` is a unit file for make main process run whenever network is online.
-* `.envservice` is a dependency for the `caressa.service` which is in `.gitignore`, so ask a colleague for the file. This file basically `.envrc` file without exports.
-* `caressa.service` file needs to be inside of a system directory with some permissions. For reference check `ls -l` output of a working version: `-rwxrwxrwx 1 root root 263 Nov 14 13:22 /etc/systemd/system/caressa.service` 
+* `.envservice` is a dependency for the `caressa.service` which is created remotely in the build file (`build.sh`).
+* `caressa.service` file needs to be inside of a system directory with some permissions. 
+For reference check `ls -l` output of a working version: 
+`-rwxrwxrwx 1 root root 263 Nov 14 13:22 /etc/systemd/system/caressa.service` 
 * Finally, run `systemctl enable caressa.service` for enable the service for once.
