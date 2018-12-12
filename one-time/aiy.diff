@@ -1,0 +1,12 @@
+*** src/aiy/_drivers/_recorder.py
+--- src/aiy/_drivers/_recorder.py
+144d143
+<         self.start()
+148c147
+<         self.stop()
+---
+>         pass
+*** src/aiy/audio.py
+--- src/aiy/audio.py
+84a85
+>         _voicehat_recorder.start()

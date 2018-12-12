@@ -43,9 +43,25 @@ There are environment variables. All are supposed to be in `settings.py`.
 
 ## Caressa Main Process Unit/Service File
 
-* `caressa.service` is a unit file for make main process run whenever network is online.
+* `caressa.service` is a systemd unit file for make main process run whenever network is online.
 * `.envservice` is a dependency for the `caressa.service` which is created remotely in the build file (`build.sh`).
 * `caressa.service` file needs to be inside of a system directory with some permissions. 
 For reference check `ls -l` output of a working version: 
 `-rwxrwxrwx 1 root root 263 Nov 14 13:22 /etc/systemd/system/caressa.service` 
 * Finally, run `systemctl enable caressa.service` for enable the service for once.
+
+## Patch for Fixing AIY Project
+
+For the first time the device is installed the patch file `one-time/aiy.diff` must be applied. Dry-run first:
+
+```
+cd ~/AIY-projects-python
+patch --dry-run < ~/Work/one-time/aiy.diff
+``` 
+
+Apply:
+
+```
+cd ~/AIY-projects-python
+patch < ~/Work/one-time/aiy.diff
+```
