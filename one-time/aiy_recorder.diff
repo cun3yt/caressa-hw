@@ -1,0 +1,8 @@
+*** ~/AIY-projects-python/src/aiy/_drivers/_recorder.py Aug  3 17:33
+--- ~/AIY-projects-python/src/aiy/_drivers/_recorder.py Dec 12 23:30
+144d143
+<         self.start()
+148c147
+<         self.stop()
+---
+>         pass
