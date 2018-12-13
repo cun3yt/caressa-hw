@@ -52,16 +52,18 @@ For reference check `ls -l` output of a working version:
 
 ## Patch for Fixing AIY Project
 
-For the first time the device is installed the patch file `one-time/aiy.diff` must be applied. Dry-run first:
+The first time the device is installed, the patch files `one-time/*.diff` must be applied. Dry-run them first:
 
 ```
 cd ~/AIY-projects-python
-patch --dry-run < ~/Work/one-time/aiy.diff
+patch src/aiy/audio.py --dry-run < ~/Work/one-time/aiy_audio.diff
+patch src/aiy/_drivers/_recorder.py --dry-run < ~/Work/one-time/aiy_recorder.diff
 ``` 
 
 Apply:
 
 ```
 cd ~/AIY-projects-python
-patch < ~/Work/one-time/aiy.diff
+patch src/aiy/audio.py < ~/Work/one-time/aiy_audio.diff
+patch src/aiy/_drivers/_recorder.py < ~/Work/one-time/aiy_recorder.diff
 ```
