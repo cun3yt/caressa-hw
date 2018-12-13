@@ -43,9 +43,29 @@ There are environment variables. All are supposed to be in `settings.py`.
 
 ## Caressa Main Process Unit/Service File
 
-* `caressa.service` is a unit file for make main process run whenever network is online.
+* `caressa.service` is a systemd unit file for make main process run whenever network is online.
 * `.envservice` is a dependency for the `caressa.service` which is created remotely in the build file (`build.sh`).
 * `caressa.service` file needs to be inside of a system directory with some permissions. 
 For reference check `ls -l` output of a working version: 
 `-rwxrwxrwx 1 root root 263 Nov 14 13:22 /etc/systemd/system/caressa.service` 
 * Finally, run `systemctl enable caressa.service` for enable the service for once.
+
+## Patch for Fixing AIY Project
+
+The first time the device is installed, the patch files `one-time/*.diff` must be applied. Dry-run them first:
+
+```
+cd ~/AIY-projects-python
+patch src/aiy/audio.py --dry-run < ~/Work/one-time/aiy_audio.diff
+patch src/aiy/_drivers/_recorder.py --dry-run < ~/Work/one-time/aiy_recorder.diff
+``` 
+
+Apply:
+
+```
+cd ~/AIY-projects-python
+patch src/aiy/audio.py < ~/Work/one-time/aiy_audio.diff
+patch src/aiy/_drivers/_recorder.py < ~/Work/one-time/aiy_recorder.diff
+```
+
+You'll need to restart the machine to make it available: `sudo shutdown now`.

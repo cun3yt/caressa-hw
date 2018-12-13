@@ -1,0 +1,4 @@
+*** ~/AIY-projects-python/src/aiy/audio.py Aug  3 17:33
+--- ~/AIY-projects-python/src/aiy/audio.py Dec 12 23:30
+84a85
+>         _voicehat_recorder.start()
