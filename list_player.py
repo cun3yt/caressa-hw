@@ -3,6 +3,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib     # Gdk, GObject,
 
 import vlc
+import requests
 from collections import deque
 
 
@@ -71,7 +72,13 @@ class ListPlayer:
 
     def add_content(self, content, to_top=False):
         if isinstance(content, dict):
-            _content = Audio(url=content.get('url'), follow_up_fn=content.get('follow_up_fn'))
+            callback_url = content.get('callback_url', None)
+
+            def callback_fn():
+                if callback_url:
+                    requests.get(callback_url)
+
+            _content = Audio(url=content.get('url'), follow_up_fn=callback_fn)
             self.queue.append(_content)
             return
 

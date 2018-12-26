@@ -164,7 +164,9 @@ class AudioPlayer:
         assert(deep_get(directive, 'type') == 'AudioPlayer.Play')
         assert(deep_get(directive, 'playBehavior') == 'ENQUEUE')
         stream = deep_get(directive, 'audioItem.stream')
-        assert(stream.get('expectedPreviousToken') == self.token)
+
+        # todo Intro of injected content must be satisfied with unchecking the expected previous token...
+        # assert(stream.get('expectedPreviousToken') == self.token)
         self.main_player.add_content({'url': stream.get('url')})
         self.token = stream.get('token')
 
@@ -181,7 +183,10 @@ class AudioPlayer:
         assert (deep_get(directive, 'type') == 'AudioPlayer.Play')
         audio_url = deep_get(directive, 'audioItem.stream.url')
         token = deep_get(directive, 'audioItem.stream.token')
-        self.token = token
+
+        if token != 'skip':
+            self.token = token
+
         return audio_url
 
     def _play(self):
