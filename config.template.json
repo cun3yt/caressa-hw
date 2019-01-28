@@ -1,0 +1,13 @@
+{
+  "api": {
+    "client_id": "",
+    "client_secret": ""
+  },
+  "user": {
+    "id": "",
+    "hash": ""
+  },
+  "hardware": {
+    "id": ""
+  }
+}

@@ -1,5 +1,5 @@
 import requests
-
+import json
 
 request_types = [
     'LaunchRequest',
@@ -21,29 +21,31 @@ intent_names = [
 class AudioClient:
     def __init__(self, url, **kwargs):
         self._url = url
+        self.streaming_url = '{}/streaming'.format(url)
         self.user_session_id = kwargs.get('user_session_id', 'hw-user-session-id')
-        self.user_id = kwargs.get('user_id', 'hw-user-id')
-        self.device_id = kwargs.get('device_id', 'hw-user-id')
+        self.user_id = kwargs.get('user_id')
+        self.user_password = kwargs.get('user_password')
+        self.device_id = kwargs.get('device_id', 'hw-device-id')
+        self.client_id = kwargs.get('client_id')
+        self.client_secret = kwargs.get('client_secret')
+        self.access_token = None
+        self.refresh_token = None
 
-    def request(self, **kwargs):
+        assert self.client_id and self.client_secret and self.user_id, (
+            "User ID, Client ID and Client Secret cannot be null. Please check your configuration file"
+        )
+
+    def _request(self, **kwargs):
+        if not self.access_token:
+            self._authenticate()
+
         request_type = kwargs.get('request_type', None)
         intent_name = kwargs.get('intent_name', None)
         token = kwargs.get('token', None)
         offset = kwargs.get('offset', 0)
 
         body = {
-            'session': {
-                'sessionId': self.user_session_id,
-            },
             'context': {
-                'System': {
-                    'user': {
-                        'userId': self.user_id,
-                    },
-                    'device': {
-                        'deviceId': self.device_id,
-                    }
-                },
                 'AudioPlayer': {
                     'offsetInMilliseconds': offset,
                     'token': token,
@@ -57,17 +59,83 @@ class AudioClient:
             }
         }
 
-        return requests.post(self._url, json=body)
+        response = requests.post(self.streaming_url, json=body,
+                                 headers={'Authorization': 'Bearer {}'.format(self.access_token)})
+
+        if response.status_code == 200:
+            return response
+
+        response = self._refresh_access_token()
+
+        if response.status_code == 200:
+            response = requests.post(self.streaming_url, json=body,
+                                     headers={'Authorization': 'Bearer {}'.format(self.access_token)})
+            return response
+
+        self._authenticate()
+
+        response = requests.post(self.streaming_url, json=body,
+                                 headers={'Authorization': 'Bearer {}'.format(self.access_token)})
+
+        return response
+
+    def _authenticate(self):
+        token_url = '{}/o/token/'.format(self._url)
+        res = requests.post(token_url,
+                            data={
+                                'grant_type': 'password',
+                                'username': '{}@proxy.caressa.ai'.format(self.user_id),
+                                'password': self.user_password,
+                                'client_id': self.client_id,
+                                'client_secret': self.client_secret,
+                            }, )
+
+        res_body = json.loads(res.text)
+
+        if res.status_code != 200:
+            # todo: tts "there is an account problem message", trigger message to Caressa team (e.g. datadog)"
+            # todo: how to trap so that it will not repeat the message every X seconds specified in the service
+            print("authentication problem!")
+            exit(1)
+
+        print(res_body)
+
+
+        self.access_token = res_body['access_token']
+        self.refresh_token = res_body['refresh_token']
+
+        print('Got access_token: {}'.format(self.access_token))
+        print('Got refresh_token: {}'.format(self.refresh_token))
+
+    def _refresh_access_token(self):
+        token_url = '{}/o/token/'.format(self._url)
+        res = requests.post(token_url,
+                            data={
+                                'grant_type': 'refresh_token',
+                                'refresh_token': self.refresh_token,
+                                'client_id': self.client_id,
+                                'client_secret': self.client_secret,
+                            }, )
+
+        res_body = json.loads(res.text)
+        print(res_body)
+
+        self.access_token = res_body['access_token']
+        self.refresh_token = res_body['refresh_token']
+
+        print('Got new access_token: {}'.format(self.access_token))
+        print('Got new refresh_token: {}'.format(self.refresh_token))
+        return res
 
     def launch(self):
-        res = self.request(request_type='LaunchRequest')
+        res = self._request(request_type='LaunchRequest')
         return res
 
     def pause(self):
-        return self.request(request_type='PlaybackController.PauseCommandIssued')
+        return self._request(request_type='PlaybackController.PauseCommandIssued')
 
     def send_playback_nearly_finished_signal(self):
-        return self.request(request_type='AudioPlayer.PlaybackNearlyFinished')
+        return self._request(request_type='AudioPlayer.PlaybackNearlyFinished')
 
     def send_playback_started_signal(self, token):
-        self.request(request_type='AudioPlayer.PlaybackStarted', token=token)
+        self._request(request_type='AudioPlayer.PlaybackStarted', token=token)

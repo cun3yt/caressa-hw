@@ -10,8 +10,11 @@ from audio_player import AudioPlayer
 from settings import pusher, SUBDOMAIN
 from phone_service import make_urgency_call
 
+import json
 
-SERVER_URL = '{}/streaming'.format(SUBDOMAIN)
+
+SERVER_URL = SUBDOMAIN
+# SERVER_URL = '{}/streaming'.format(SUBDOMAIN)
 USER_ID = 1
 
 LEFT_BLACK_BTN_ID = 7
@@ -25,8 +28,15 @@ user_channels = [
     'Channel.CA.Fremont.Facility.Brookdale',
 ]
 
+with open('config.json') as json_data_file:
+    conf = json.load(json_data_file)
 
-client = AudioClient(url=SERVER_URL)
+client = AudioClient(url=SERVER_URL,
+                     user_id=conf['user']['id'],
+                     user_password=conf['user']['hash'],
+                     device_id=conf['hardware']['id'],
+                     client_id=conf['api']['client_id'],
+                     client_secret=conf['api']['client_secret'], )
 player = AudioPlayer(client)
 
 
