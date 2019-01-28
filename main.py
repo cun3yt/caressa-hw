@@ -7,14 +7,11 @@ from threading import Thread
 
 from audio_client import AudioClient
 from audio_player import AudioPlayer
-from settings import pusher, SUBDOMAIN
+from settings import pusher, SUBDOMAIN as SERVER_URL
 from phone_service import make_urgency_call
 
 import json
 
-
-SERVER_URL = SUBDOMAIN
-USER_ID = 1
 
 LEFT_BLACK_BTN_ID = 7
 RIGHT_BLACK_BTN_ID = 8
