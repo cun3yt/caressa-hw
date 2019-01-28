@@ -35,8 +35,6 @@ class ListPlayer:
     def pause(self):
         self.player.pause()
 
-        # todo: How to save the playlist from bloating?
-
     def add_content(self, content):
         url = content.get('url')
         self.media_list.add_media(url)

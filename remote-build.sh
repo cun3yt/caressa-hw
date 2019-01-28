@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
-HOST='rasp'
+HOST='localhost'
 USER='pi'
 REMOTE_DIR='/home/pi/Work'
 MAIN_CODE='main_aiy.py'
 ENV_FILE='.envrc'
 ENV_SERVICE_FILE='.envservice'
+FORWARD_PORTS=(9192)
 
-rsync -rvz --delete --exclude-from=.rsyncignore ~/Work/caressa_hw/ "${USER}@${HOST}:${REMOTE_DIR}"
+#rsync -rvz --delete --exclude-from=.rsyncignore ~/Work/caressa_hw/ "${USER}@${HOST}:${REMOTE_DIR}"
 
-echo "RSync Done..."
+for port in $FORWARD_PORTS; do
+    echo "RSync'ing to port ${port}"
+    rsync -rvz -e "ssh -p ${port}" --delete --exclude-from=.rsyncignore ~/Work/caressa_hw/ "${USER}@${HOST}:${REMOTE_DIR}"
+done
+
+echo "RSync to ${HOST} Done..."
 echo "Running Script"
 
 # Environment file for the service in Raspberry Pi is different than the original environment file `.envrc`,

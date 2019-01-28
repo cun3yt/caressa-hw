@@ -7,12 +7,11 @@ from threading import Thread
 
 from audio_client import AudioClient
 from audio_player import AudioPlayer
-from settings import pusher, SUBDOMAIN
+from settings import pusher, SUBDOMAIN as SERVER_URL
 from phone_service import make_urgency_call
 
+import json
 
-SERVER_URL = '{}/streaming'.format(SUBDOMAIN)
-USER_ID = 1
 
 LEFT_BLACK_BTN_ID = 7
 RIGHT_BLACK_BTN_ID = 8
@@ -20,15 +19,21 @@ BIG_RED_BTN_ID = 9
 SMALL_RED_BTN_ID = 10
 
 
-user_channels = [
-    'family.senior.{}'.format(USER_ID),
-    'Channel.CA.Fremont.Facility.Brookdale',
-]
+with open('config.json') as json_data_file:
+    conf = json.load(json_data_file)
 
+client = AudioClient(url=SERVER_URL,
+                     user_id=conf['user']['id'],
+                     user_password=conf['user']['hash'],
+                     device_id=conf['hardware']['id'],
+                     client_id=conf['api']['client_id'],
+                     client_secret=conf['api']['client_secret'], )
+channels_response = client.get_channels()
 
-client = AudioClient(url=SERVER_URL)
+channels_response_body = json.loads(channels_response.text)
+user_channels = channels_response_body['channels']
+
 player = AudioPlayer(client)
-
 
 volume_up_btn = Button(RIGHT_BLACK_BTN_ID)
 volume_up_btn.when_pressed = player.volume_up
@@ -46,10 +51,11 @@ emergency_btn.when_pressed = make_urgency_call
 def connect_handler(*args, **kwargs):
     print('connect_handler')
 
-    for channel in user_channels:
-        channel = pusher.subscribe(channel)
+    for channel_id in user_channels:
+        channel = pusher.subscribe(channel_id)
         channel.bind('voice_mail', player.voice_mail_arrived)
         channel.bind('urgent_mail', player.urgent_mail_arrived)
+        print("connected to {channel_id}".format(channel_id=channel_id))
 
 
 def setup_realtime_update():

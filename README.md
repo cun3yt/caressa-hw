@@ -40,6 +40,16 @@ There are environment variables. All are supposed to be in `settings.py`.
 ## Todo
 
 * Remote run from PyCharm for debugging...
+* Security issue? What to do with credentials to be used by someone else with some other hardware? Location-based 
+check? 
+
+## Configuration
+
+* Copy `config.template.json` as `config.json`.
+* Fill these fields in `config.json`:
+    * client ID and secret: Authentication server client ID and secret.
+    * user's ID and hash: User credentials
+    * hardware ID: any hardware specific ID
 
 ## Caressa Main Process Unit/Service File
 
@@ -69,3 +79,5 @@ patch src/aiy/_drivers/_recorder.py < ~/Work/one-time/aiy_recorder.diff
 ```
 
 You'll need to restart the machine to make it available: `sudo shutdown now`.
+
+* What is the downside of compromised client ID and client secret?
