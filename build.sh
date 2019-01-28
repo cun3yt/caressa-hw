@@ -2,7 +2,6 @@
 HOST='rasp'
 USER='pi'
 REMOTE_DIR='/home/pi/Work'
-MAIN_CODE='main_aiy.py'
 ENV_FILE='.envrc'
 ENV_SERVICE_FILE='.envservice'
 
@@ -17,8 +16,3 @@ echo "Running Script"
 
 #ssh "${USER}@${HOST}" "sed 's/^export\ //g' ${REMOTE_DIR}/${ENV_FILE} | sed '/^$/d' > ${REMOTE_DIR}/${ENV_SERVICE_FILE}"
 #ssh "${USER}@${HOST}" "sudo systemctl restart caressa.service"
-
-
-
-#ssh "${USER}@${HOST}" "python3 ${REMOTE_DIR}/${MAIN_CODE}"
-#ssh pi@192.168.1.95 'cd ~/Work; source ~/virtual-environments/caressa1/bin/activate; pip install -r requirements.txt'
