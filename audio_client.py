@@ -1,4 +1,4 @@
-import requests
+from requests import request, post
 import json
 
 request_types = [
@@ -22,6 +22,7 @@ class AudioClient:
     def __init__(self, url, **kwargs):
         self._url = url
         self.streaming_url = '{}/streaming'.format(url)
+        self.channel_url = '{}/api/users/me/channels/'.format(url)
         self.user_session_id = kwargs.get('user_session_id', 'hw-user-session-id')
         self.user_id = kwargs.get('user_id')
         self.user_password = kwargs.get('user_password')
@@ -35,10 +36,36 @@ class AudioClient:
             "User ID, Client ID and Client Secret cannot be null. Please check your configuration file"
         )
 
-    def _request(self, **kwargs):
+    def get_channels(self):
+        return self._common_request(self.channel_url)
+
+    def _common_request(self, url, method='GET', **kwargs):
         if not self.access_token:
             self._authenticate()
 
+        body = kwargs.get('body', {})
+        headers = {'Authorization': 'Bearer {}'.format(self.access_token)}
+
+        response = request(method=method, url=url, json=body, headers=headers)
+
+        if response.status_code == 200:
+            return response
+
+        response = self._refresh_access_token()
+
+        if response.status_code == 200:
+            response = request(method=method, url=url, json=body, headers=headers)
+
+            if response.status_code == 200:
+                return response
+
+        self._authenticate()
+
+        response = request(method=method, url=url, json=body, headers=headers)
+
+        return response
+
+    def _streaming_request(self, **kwargs):
         request_type = kwargs.get('request_type', None)
         intent_name = kwargs.get('intent_name', None)
         token = kwargs.get('token', None)
@@ -59,36 +86,19 @@ class AudioClient:
             }
         }
 
-        response = requests.post(self.streaming_url, json=body,
-                                 headers={'Authorization': 'Bearer {}'.format(self.access_token)})
-
-        if response.status_code == 200:
-            return response
-
-        response = self._refresh_access_token()
-
-        if response.status_code == 200:
-            response = requests.post(self.streaming_url, json=body,
-                                     headers={'Authorization': 'Bearer {}'.format(self.access_token)})
-            return response
-
-        self._authenticate()
-
-        response = requests.post(self.streaming_url, json=body,
-                                 headers={'Authorization': 'Bearer {}'.format(self.access_token)})
-
-        return response
+        return self._common_request(self.streaming_url, method='post', body=body)
 
     def _authenticate(self):
         token_url = '{}/o/token/'.format(self._url)
-        res = requests.post(token_url,
-                            data={
-                                'grant_type': 'password',
-                                'username': '{}@proxy.caressa.ai'.format(self.user_id),
-                                'password': self.user_password,
-                                'client_id': self.client_id,
-                                'client_secret': self.client_secret,
-                            }, )
+        res = request(method='post',
+                      url=token_url,
+                      data={
+                          'grant_type': 'password',
+                          'username': '{}@proxy.caressa.ai'.format(self.user_id),
+                          'password': self.user_password,
+                          'client_id': self.client_id,
+                          'client_secret': self.client_secret,
+                      }, )
 
         res_body = json.loads(res.text)
 
@@ -100,7 +110,6 @@ class AudioClient:
 
         print(res_body)
 
-
         self.access_token = res_body['access_token']
         self.refresh_token = res_body['refresh_token']
 
@@ -109,13 +118,14 @@ class AudioClient:
 
     def _refresh_access_token(self):
         token_url = '{}/o/token/'.format(self._url)
-        res = requests.post(token_url,
-                            data={
-                                'grant_type': 'refresh_token',
-                                'refresh_token': self.refresh_token,
-                                'client_id': self.client_id,
-                                'client_secret': self.client_secret,
-                            }, )
+        res = request(method='post',
+                      url=token_url,
+                      data={
+                          'grant_type': 'refresh_token',
+                          'refresh_token': self.refresh_token,
+                          'client_id': self.client_id,
+                          'client_secret': self.client_secret,
+                      }, )
 
         res_body = json.loads(res.text)
         print(res_body)
@@ -128,14 +138,14 @@ class AudioClient:
         return res
 
     def launch(self):
-        res = self._request(request_type='LaunchRequest')
+        res = self._streaming_request(request_type='LaunchRequest')
         return res
 
     def pause(self):
-        return self._request(request_type='PlaybackController.PauseCommandIssued')
+        return self._streaming_request(request_type='PlaybackController.PauseCommandIssued')
 
     def send_playback_nearly_finished_signal(self):
-        return self._request(request_type='AudioPlayer.PlaybackNearlyFinished')
+        return self._streaming_request(request_type='AudioPlayer.PlaybackNearlyFinished')
 
     def send_playback_started_signal(self, token):
-        self._request(request_type='AudioPlayer.PlaybackStarted', token=token)
+        self._streaming_request(request_type='AudioPlayer.PlaybackStarted', token=token)
