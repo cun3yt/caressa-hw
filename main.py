@@ -14,7 +14,6 @@ import json
 
 
 SERVER_URL = SUBDOMAIN
-# SERVER_URL = '{}/streaming'.format(SUBDOMAIN)
 USER_ID = 1
 
 LEFT_BLACK_BTN_ID = 7
@@ -23,7 +22,7 @@ BIG_RED_BTN_ID = 9
 SMALL_RED_BTN_ID = 10
 
 
-user_channels = [
+user_channels = [       # todo: get this list from API
     'family.senior.{}'.format(USER_ID),
     'Channel.CA.Fremont.Facility.Brookdale',
 ]
