@@ -60,6 +60,10 @@ For reference check `ls -l` output of a working version:
 `-rwxrwxrwx 1 root root 263 Nov 14 13:22 /etc/systemd/system/caressa.service` 
 * Finally, run `systemctl enable caressa.service` for enable the service for once.
 
+## Running Tests
+
+* `python3 -m unittest discover > /tmp/null`
+
 ## Patch for Fixing AIY Project
 
 The first time the device is installed, the patch files `one-time/*.diff` must be applied. Dry-run them first:
