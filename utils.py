@@ -1,11 +1,6 @@
 # todo OSS this
 # todo study `collections` package
 import collections
-from datetime import timedelta
-
-
-def sec_to_hours(sec):
-    return str(timedelta(seconds=sec))
 
 
 def deep_get(dict_, key, default_value=None):

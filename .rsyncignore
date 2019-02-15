@@ -1,9 +1,11 @@
+__pycache__/
 .rsyncignore
 .gitignore
 .git/
 .idea/
-venv/
-build.sh
-__pycache__/
 .DS_Store
+venv/
+
+build.sh
+remote-build.sh
 config.json
