@@ -27,6 +27,9 @@ class MediaPlayer:
     def pause(self):
         self._state = State.Paused
 
+    def stop(self):
+        self._state = State.Stopped
+
     def get_state(self):
         return self._state
 

@@ -1,5 +1,6 @@
 import unittest
 from list_player import Audio, ListPlayer
+import logging
 
 
 class TestAudio(unittest.TestCase):
@@ -101,6 +102,61 @@ class TestListPlayer(unittest.TestCase):
         lp = ListPlayer(list_finished_callback=_list_finished_callback)
         self.assertRaises(ValueError, lp.play)
         self.assertFalse(lp.is_playing())
-        lp.add_content(content='http://example.com/audio_1.mp3')
+        lp.add_content('http://example.com/audio_1.mp3')
         lp.play()
-        self.assertRaises(ValueError, lp.play_next)
+        lp.player.stop()
+        if lp._content_follow_fn:   # need to consume follow up function
+            lp.play()
+            lp.player.stop()
+        self.assertRaises(ValueError, lp.play)
+
+    def test_list_finished_callback_no_next(self):
+        # list_finished_callback is called until next item is intentionally `play`ed
+        def _list_finished_callback():
+            logging.getLogger().info('_list_finished_callback is called')
+            return 0
+        lp = ListPlayer(list_finished_callback=_list_finished_callback)
+        with self.assertLogs(level='INFO') as context_manager:
+            lp.play()
+        self.assertEqual(context_manager.output,
+                         ['INFO:root:_list_finished_callback is called', ])
+        self.assertFalse(lp.is_playing())
+
+    def test_list_finished_zero_state(self):
+        lp = ListPlayer()
+        try:
+            lp.play()
+        except Exception:
+            self.fail('No exception is waited')
+        self.assertEqual(lp.count, 0)
+        self.assertFalse(lp.is_playing())
+
+    def test_list_repeated_play(self):
+        lp = ListPlayer()
+        lp.add_content('http://example.com/audio_1.mp3')
+        lp.add_content('http://example.com/audio_2.mp3')
+        lp.play()
+        self.assertEqual(lp.count, 1)
+        self.assertTrue(lp.is_playing())
+        lp.play()
+        self.assertEqual(lp.count, 1, "Repeated play request consumes no item")
+        self.assertTrue(lp.is_playing(), "Repeated play request makes no state change")
+
+    def test_clear_playlist(self):
+        lp = ListPlayer()
+        lp.add_content('http://example.com/audio_1.mp3')
+        lp.add_content('http://example.com/audio_2.mp3')
+        lp.clean_playlist()
+        self.assertEqual(lp.count, 0)
+
+        lp.add_content('http://example.com/audio_1.mp3')
+        lp.add_content('http://example.com/audio_2.mp3')
+        lp.add_content('http://example.com/audio_3.mp3')
+        lp.play()
+        lp.clean_playlist()
+        self.assertEqual(lp.count, 0)
+
+    def test_str(self):
+        lp = ListPlayer()
+        lp.add_content('http://example.com/audio_1.mp3')
+        self.assertEqual(str(lp), "List Player with 1 element(s)")

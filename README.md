@@ -79,7 +79,8 @@ The following environment variables are in use. You can set `.envrc` file with t
 
 ## Running Tests
 
-* `python3 -m unittest discover > /tmp/null`
+* `coverage run -m unittest discover > /tmp/null`
+* `coverage report`
 
 ## Patch for Fixing AIY Project
 

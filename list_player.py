@@ -19,6 +19,9 @@ class Audio:
         return self._follow_up
 
 
+# todo There is a need of system notification system (e.g. sounds/visuals): Loading, Updating, ...
+
+
 class ListPlayer:
     def __init__(self, *args, **kwargs):
         self.queue = deque()
@@ -38,7 +41,7 @@ class ListPlayer:
             self.player.play()
             return
 
-        if self._content_follow_fn:
+        if self._content_follow_fn:     # todo: audit if this is the right place for this callback?
             fn, self._content_follow_fn = self._content_follow_fn, None
             self.pause()
             fn()
@@ -95,7 +98,7 @@ class ListPlayer:
         em.event_attach(vlc.EventType.MediaPlayerEndReached, self.play)
 
     def __str__(self):
-        return "List Player with {} elements".format(self.count)
+        return "List Player with {} element(s)".format(self.count)
 
 
 if __name__ == '__main__':

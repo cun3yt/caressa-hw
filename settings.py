@@ -23,3 +23,5 @@ pusher = pysher.Pusher(key=pusher_key_id,
                        secret=pusher_secret)
 
 SUBDOMAIN = getenv('WEB_SUBDOMAIN')
+
+# todo: Decide on asserting being non-null existence or full operation of some of the services here.
