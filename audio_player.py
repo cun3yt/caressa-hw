@@ -28,11 +28,15 @@ class AudioPlayer:
 
         self._mixer = AlsaMixer(alsa_mixers()[0])
 
-        processing_indicator_fn = kwargs.get('processing_indicator_fn', lambda: 0)
-        processing_off_indicator_fn = kwargs.get('processing_off_indicator', lambda: 0)
+        # processing_indicator related codes are commented out, they are going to be used or killed
+        # when it is decided on visual/sound feedback on processing state
+        # @author Cuneyt Mertayak
+        #
+        # processing_indicator_fn = kwargs.get('processing_indicator_fn', lambda: 0)
+        # processing_off_indicator_fn = kwargs.get('processing_off_indicator', lambda: 0)
 
         (self.main_player, self.voice_mail_player, self.urgent_mail_player, self.players) = \
-            self._init_players(processing_indicator_fn, processing_off_indicator_fn)
+            self._init_players()
 
         self.current_state = State(current_player='main', playing_state=False)  # type: State
         self.state_stack = StateStack()
@@ -129,7 +133,7 @@ class AudioPlayer:
 
     def next_command(self, *args, **kwargs):
         logging.getLogger().info('next command came... current player: {}'.format(self.current_player_name))
-        if self.current_player_name != 'main':
+        if self.current_player_name == 'urgent-mail':
             return
 
         fn = self.player.play_next if self.current_state.playing_state else self.play_pause
@@ -139,7 +143,7 @@ class AudioPlayer:
     def notify():
         os_call(['aplay', './sounds/notification-doorbell.wav', ])
 
-    def _init_players(self, processing_indicator_fn, processing_off_indicator_fn):
+    def _init_players(self):
         main_player = ListPlayer(next_item_callback=self._content_started)
         voice_mail_player = ListPlayer(list_finished_callback=self._voice_mail_all_consumed)
         urgent_mail_player = ListPlayer(list_finished_callback=self._urgent_mail_all_consumed)
@@ -161,7 +165,7 @@ class AudioPlayer:
 
         try:
             res_body = json.loads(response.text)
-        except json.decoder.JSONDecodeError:
+        except json.decoder.JSONDecodeError:    # pragma: no cover
             logging.getLogger().info("This response caused error: {}\n".format(response.text))
             return -1
 
@@ -229,12 +233,14 @@ class AudioPlayer:
         self._set_led_state()
         return play_btn
 
-    def _voice_mail_all_consumed(self, *args, **kwargs):
+    def _voice_mail_all_consumed(self, *args, **kwargs):    # pragma: no cover
+        # callbacks for list_player
         logging.getLogger().info('all voice mail consumed!!')
         self.voice_mail_player.clean_playlist()
         self.restore_state()
 
-    def _urgent_mail_all_consumed(self, *args, **kwargs):
+    def _urgent_mail_all_consumed(self, *args, **kwargs):   # pragma: no cover
+        # callbacks for list_player
         logging.getLogger().info('all urgent mail consumed!!')
         self.urgent_mail_player.clean_playlist()
         self.restore_state()
