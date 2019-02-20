@@ -24,7 +24,7 @@ def get_audio_player_dependencies():
         from threading import Thread
         from alsaaudio import Mixer as AlsaMixer, mixers as alsa_mixers
         from aiy import voicehat
-        return os_call, Thread, AlsaMixer, alsa_mixers, voicehat, deep_get
+        return os_call, Thread, AlsaMixer, alsa_mixers, voicehat
 
     from tests.mock.mock_subprocess import call as os_call
     from tests.mock.mock_threading import Thread
