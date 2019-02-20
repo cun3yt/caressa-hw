@@ -1,5 +1,9 @@
 # Caressa Hardware Initiation
 
+## Setting a New Device From Scratch
+
+To set a new device read INSTALLATION.md. 
+
 ## Google AIY Set
 
 * Aptitude
