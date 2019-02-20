@@ -1,4 +1,4 @@
-from requests import request, post
+from requests import request
 import json
 
 request_types = [
@@ -9,12 +9,6 @@ request_types = [
     'AudioPlayer.PlaybackNearlyFinished',
     'AudioPlayer.PlaybackStarted',
     'PlaybackController.PauseCommandIssued',
-]
-
-intent_names = [
-    'AMAZON.ResumeIntent',
-    'AMAZON.NextIntent',
-    'AMAZON.PauseIntent',
 ]
 
 

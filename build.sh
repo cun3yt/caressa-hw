@@ -14,5 +14,5 @@ echo "Running Script"
 # so generating the service env file with the removal of "export " at the beginning of each line of
 # the original environment file:
 
-#ssh "${USER}@${HOST}" "sed 's/^export\ //g' ${REMOTE_DIR}/${ENV_FILE} | sed '/^$/d' > ${REMOTE_DIR}/${ENV_SERVICE_FILE}"
-#ssh "${USER}@${HOST}" "sudo systemctl restart caressa.service"
+ssh "${USER}@${HOST}" "sed 's/^export\ //g' ${REMOTE_DIR}/${ENV_FILE} | sed '/^$/d' > ${REMOTE_DIR}/${ENV_SERVICE_FILE}"
+ssh "${USER}@${HOST}" "sudo systemctl restart caressa.service"

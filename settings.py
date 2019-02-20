@@ -1,6 +1,13 @@
+import pysher
 from os import getenv
 
-import pysher
+ENV = getenv('ENV')
+
+possible_envs = ['test', 'dev', 'stage', 'prod', ]
+
+if ENV not in possible_envs:
+    raise Exception("ENV environment variable must be set. "
+                    "Possible values: {}".format(', '.join(possible_envs)))
 
 twilio_account_sid = getenv('TWILIO_ACCOUNT_SID')
 twilio_auth_token = getenv('TWILIO_AUTH_TOKEN')
@@ -16,3 +23,5 @@ pusher = pysher.Pusher(key=pusher_key_id,
                        secret=pusher_secret)
 
 SUBDOMAIN = getenv('WEB_SUBDOMAIN')
+
+# todo: Decide on asserting being non-null existence or full operation of some of the services here.

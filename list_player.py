@@ -1,9 +1,7 @@
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GLib     # Gdk, GObject,
-
-import vlc
 from collections import deque
+from conditional_imports import get_list_player_dependencies
+
+gi, vlc, Gtk, GLib = get_list_player_dependencies()
 
 
 # instance of this class must pause the play, collect the response and send it ...
@@ -19,6 +17,9 @@ class Audio:
     @property
     def follow_up_fn(self):
         return self._follow_up
+
+
+# todo There is a need of system notification system (e.g. sounds/visuals): Loading, Updating, ...
 
 
 class ListPlayer:
@@ -40,7 +41,7 @@ class ListPlayer:
             self.player.play()
             return
 
-        if self._content_follow_fn:
+        if self._content_follow_fn:     # todo: audit if this is the right place for this callback?
             fn, self._content_follow_fn = self._content_follow_fn, None
             self.pause()
             fn()
@@ -56,6 +57,7 @@ class ListPlayer:
     def play_next(self):
         self._content_follow_fn = None
 
+        # todo: What to do if the queue is empty??
         content = self.queue.popleft()  # type: Audio
         self._content_follow_fn = content.follow_up_fn
 
@@ -70,10 +72,11 @@ class ListPlayer:
         GLib.idle_add(lambda: self.player.pause())
 
     def add_content(self, content, to_top=False):
+        if isinstance(content, str):
+            content = Audio(url=content)
+
         if isinstance(content, dict):
-            _content = Audio(url=content.get('url'), follow_up_fn=content.get('follow_up_fn'))
-            self.queue.append(_content)
-            return
+            content = Audio(url=content.get('url'), follow_up_fn=content.get('follow_up_fn'))
 
         if to_top:
             self.queue.appendleft(content)
@@ -95,7 +98,7 @@ class ListPlayer:
         em.event_attach(vlc.EventType.MediaPlayerEndReached, self.play)
 
     def __str__(self):
-        return "List Player with {} elements".format(self.count)
+        return "List Player with {} element(s)".format(self.count)
 
 
 if __name__ == '__main__':

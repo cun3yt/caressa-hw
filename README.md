@@ -1,5 +1,9 @@
 # Caressa Hardware Initiation
 
+## Setting a New Device From Scratch
+
+To set a new device read INSTALLATION.md. 
+
 ## Google AIY Set
 
 * Aptitude
@@ -59,6 +63,28 @@ check?
 For reference check `ls -l` output of a working version: 
 `-rwxrwxrwx 1 root root 263 Nov 14 13:22 /etc/systemd/system/caressa.service` 
 * Finally, run `systemctl enable caressa.service` for enable the service for once.
+
+## Environment Variables
+
+The following environment variables are in use. You can set `.envrc` file with these variable, which is used to generate `.envservice` by build scripts.
+
+* ENV: Environment, e.g. 'dev', 'test', 'stage', 'prod'
+* Twilio Account Variables
+    * TWILIO_ACCOUNT_SID
+    * TWILIO_AUTH_TOKEN
+* Pusher Account Variables
+    * PUSHER_APP_ID
+    * PUSHER_KEY_ID
+    * PUSHER_SECRET
+    * PUSHER_CLUSTER
+* GOOGLE_APPLICATION_CREDENTIALS
+* WEB_SUBDOMAIN: Domain of the Caressa API
+
+
+## Running Tests
+
+* `coverage run -m unittest discover > /tmp/null`
+* `coverage report`
 
 ## Patch for Fixing AIY Project
 
