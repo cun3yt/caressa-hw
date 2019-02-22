@@ -1,5 +1,10 @@
 from requests import request
 import json
+from logger import get_logger
+
+
+logger = get_logger()
+
 
 request_types = [
     'LaunchRequest',
@@ -17,10 +22,8 @@ class AudioClient:
         self._url = url
         self.streaming_url = '{}/streaming'.format(url)
         self.channel_url = '{}/api/users/me/channels/'.format(url)
-        self.user_session_id = kwargs.get('user_session_id', 'hw-user-session-id')
         self.user_id = kwargs.get('user_id')
-        self.user_password = kwargs.get('user_password')
-        self.device_id = kwargs.get('device_id', 'hw-device-id')
+        self.user_password = kwargs.get('user_password', '')
         self.client_id = kwargs.get('client_id')
         self.client_secret = kwargs.get('client_secret')
         self.access_token = None
@@ -96,19 +99,16 @@ class AudioClient:
 
         res_body = json.loads(res.text)
 
-        if res.status_code != 200:
-            # todo: tts "there is an account problem message", trigger message to Caressa team (e.g. datadog)"
-            # todo: how to trap so that it will not repeat the message every X seconds specified in the service
-            print("authentication problem!")
-            exit(1)
-
-        print(res_body)
+        # todo: tts "there is an account problem message", trigger message to Caressa team (e.g. datadog)"
+        # todo: how to trap so that it will not repeat the message every X seconds specified in the service
+        assert res.status_code == 200, (
+            "Authentication supposed to work, there must be some credentials problem"
+        )
 
         self.access_token = res_body['access_token']
         self.refresh_token = res_body['refresh_token']
 
-        print('Got access_token: {}'.format(self.access_token))
-        print('Got refresh_token: {}'.format(self.refresh_token))
+        logger.info("Access and refresh tokens are saved.")
 
     def _refresh_access_token(self):
         token_url = '{}/o/token/'.format(self._url)
@@ -122,13 +122,11 @@ class AudioClient:
                       }, )
 
         res_body = json.loads(res.text)
-        print(res_body)
 
         self.access_token = res_body['access_token']
         self.refresh_token = res_body['refresh_token']
 
-        print('Got new access_token: {}'.format(self.access_token))
-        print('Got new refresh_token: {}'.format(self.refresh_token))
+        logger.info("Got new access and refresh token")
         return res
 
     def launch(self):

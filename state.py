@@ -1,5 +1,9 @@
 from collections import deque
 from copy import deepcopy
+from logger import get_logger
+
+
+logger = get_logger()
 
 
 class State:
@@ -18,14 +22,14 @@ class StateStack:
     def push(self, state: State):
         state_copy = deepcopy(state)
         self.stack.append(state_copy)
-        print("StateStack::push with {}, new size: {}".format(state, self.count))
+        logger.info("StateStack::push with {}, new size: {}".format(state, self.count))
 
     def pop(self) -> State:
         if self.count < 1:
             raise Exception('stack is empty')
 
         state = self.stack.pop()
-        print("StateStack::pop, new size: {}, popped state: {}".format(self.count, state))
+        logger.info("StateStack::pop, new size: {}, popped state: {}".format(self.count, state))
         return state
 
     @property

@@ -53,7 +53,6 @@ check?
 * Fill these fields in `config.json`:
     * client ID and secret: Authentication server client ID and secret.
     * user's ID and hash: User credentials
-    * hardware ID: any hardware specific ID
 
 ## Caressa Main Process Unit/Service File
 
@@ -73,7 +72,6 @@ The following environment variables are in use. You can set `.envrc` file with t
     * TWILIO_ACCOUNT_SID
     * TWILIO_AUTH_TOKEN
 * Pusher Account Variables
-    * PUSHER_APP_ID
     * PUSHER_KEY_ID
     * PUSHER_SECRET
     * PUSHER_CLUSTER
@@ -83,6 +81,7 @@ The following environment variables are in use. You can set `.envrc` file with t
 
 ## Running Tests
 
+* Install test requirements: `pip install -r requirements/test.txt`
 * `coverage run -m unittest discover > /tmp/null`
 * `coverage report`
 

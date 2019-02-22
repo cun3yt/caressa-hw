@@ -1,0 +1,10 @@
+{
+  "api": {
+    "client_id": "some-client-id",
+    "client_secret": "some-client-secret"
+  },
+  "user": {
+    "id": "some-user-id",
+    "hash": "some-hash"
+  }
+}

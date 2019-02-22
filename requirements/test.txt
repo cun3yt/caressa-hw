@@ -1,0 +1,5 @@
+-r ./base.txt
+
+ipdb==0.11
+responses==0.10.5   # patching requests library
+coverage==4.5.2
