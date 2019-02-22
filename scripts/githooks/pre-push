@@ -4,6 +4,8 @@
 # If you already have a .git/hooks folder you should delete (or rename) it.
 # ln -s -f ./scripts/githooks/ .git/hooks
 
+echo "Running pre-push"
+
 source .envrc
 source ./tests/.override.envrc
 source ./scripts/init.sh
