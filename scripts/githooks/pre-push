@@ -43,9 +43,10 @@ for file in "${changed_files[@]}"; do
 done
 
 if [ "$run_python_unit_tests" == true ]; then
-    printf "Unit testing Python... "
+    printf "Running tests...\n"
     coverage run -m unittest discover > /tmp/null
     RESULT=$?
+    coverage report
 fi
 
 if [ ${SHOULD_STASH} = 1 ]; then
