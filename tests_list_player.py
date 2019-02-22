@@ -10,6 +10,9 @@ class TestAudio(unittest.TestCase):
         fn = audio.follow_up_fn
         self.assertIsNone(fn())
 
+    def test_fail(self):
+        self.fail('Nolii?')
+
     def test_audio_set_with_fn(self):
         def _fn(*args):
             return "_fn is called with {}".format(', '.join(*args))
