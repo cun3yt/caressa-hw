@@ -1,5 +1,5 @@
 import json
-import logging
+from logger import get_logger
 from inspect import stack as call_stack
 from state import State, StateStack
 from list_player import ListPlayer
@@ -15,6 +15,9 @@ _VOLUME_INCREMENT = 7
 _URGENT_MAIL_VOLUME_MIN = 80
 _VOLUME_MAX = 100
 _VOLUME_MIN = 15
+
+
+logger = get_logger()
 
 
 class AudioPlayer:
@@ -42,7 +45,7 @@ class AudioPlayer:
         self.state_stack = StateStack()
         self.button = self._init_btn()
 
-        logging.getLogger().info('AudioPlayer is ready')
+        logger.info("AudioPlayer is ready")
 
     @property
     def player(self):
@@ -54,14 +57,14 @@ class AudioPlayer:
         return self.current_state.current_player
 
     def save_state(self):
-        logging.getLogger().info('saving state: {}'.format(self.current_state))
+        logger.info("saving state: {}".format(self.current_state))
         self.state_stack.push(self.current_state)
 
     def restore_state(self):
-        logging.getLogger().info('restore_state is called (callback call)')
+        logger.info("restore_state is called (callback call)")
 
         if self.state_stack.count < 1:
-            logging.getLogger().info('nothing to restore')
+            logger.info("nothing to restore")
             return
 
         self._pause()
@@ -73,10 +76,10 @@ class AudioPlayer:
             self._play()
 
     def button_press_what_next(self):
-        logging.getLogger().info('button_press_what_next, voice-mail count: {}'.format(self.voice_mail_player.count))
+        logger.info("button_press_what_next, voice-mail count: {}".format(self.voice_mail_player.count))
 
         if self.voice_mail_player.count > 0 and self.player != self.voice_mail_player:
-            logging.getLogger().info("delivering voice-mail")
+            logger.info("delivering voice-mail")
             self.save_state()
             self._pause()
             self.current_state = State(current_player='voice-mail', playing_state=False)
@@ -89,7 +92,7 @@ class AudioPlayer:
         Thread(target=fn).start()
 
     def urgent_mail_arrived(self, *args, **kwargs):
-        logging.getLogger().info('urgent mail arrived')
+        logger.info("urgent mail arrived")
         self.urgent_mail_player.add_content({'url': args[0]})
 
         if self.player != self.urgent_mail_player:
@@ -104,9 +107,9 @@ class AudioPlayer:
 
     def voice_mail_arrived(self, *args, **kwargs):
         self._set_led_state(voicehat.LED.BLINK)
-        logging.getLogger().info('voice_mail_arrived')
+        logger.info("voice_mail_arrived")
         self.voice_mail_player.add_content({'url': args[0]})
-        logging.getLogger().info('voice-mail count: {}'.format(self.voice_mail_player.count))
+        logger.info("voice-mail count: {}".format(self.voice_mail_player.count))
         self.notify()
 
     def set_volume_minimum(self, min_volume):
@@ -122,17 +125,17 @@ class AudioPlayer:
     def volume_up(self, *args, **kwargs):
         current_vol, *_ = self._mixer.getvolume()
         new_vol = min(_VOLUME_MAX, current_vol + _VOLUME_INCREMENT)
-        logging.getLogger().info('volume up from {} to {}'.format(current_vol, new_vol))
+        logger.info("volume up from {} to {}".format(current_vol, new_vol))
         self._mixer.setvolume(new_vol)
 
     def volume_down(self, *args, **kwargs):
         current_vol, *_ = self._mixer.getvolume()
         new_vol = max(_VOLUME_MIN, current_vol - _VOLUME_INCREMENT)
-        logging.getLogger().info('volume down from {} to {}'.format(current_vol, new_vol))
+        logger.info("volume down from {} to {}".format(current_vol, new_vol))
         self._mixer.setvolume(new_vol)
 
     def next_command(self, *args, **kwargs):
-        logging.getLogger().info('next command came... current player: {}'.format(self.current_player_name))
+        logger.info("next command came... current player: {}".format(self.current_player_name))
         if self.current_player_name == 'urgent-mail':
             return
 
@@ -160,13 +163,13 @@ class AudioPlayer:
 
     def _queue_up(self):
         # todo: Sometimes causing json decode problem, can a solution be repeated requests?
-        logging.getLogger().info('{} is called'.format(call_stack()[0][3]))
+        logger.info("{} is called".format(call_stack()[0][3]))
         response = self.client.send_playback_nearly_finished_signal()
 
         try:
             res_body = json.loads(response.text)
         except json.decoder.JSONDecodeError:    # pragma: no cover
-            logging.getLogger().info("This response caused error: {}\n".format(response.text))
+            logger.info("This response caused error: {}\n".format(response.text))
             return -1
 
         directive = deep_get(res_body, 'response.directives')[0]
@@ -181,12 +184,12 @@ class AudioPlayer:
         self.token = stream.get('token')
 
     def _content_started(self, *args, **kwargs):
-        logging.getLogger().info('_content_started is called (probably callback call)')
+        logger.info("_content_started is called (probably callback call)")
         self.client.send_playback_started_signal(token=self.token)
         Thread(target=self._queue_up).start()
 
     def _get_first_audio_url(self):
-        logging.getLogger().info('{} is called'.format(call_stack()[0][3]))
+        logger.info("{} is called".format(call_stack()[0][3]))
         response = self.client.launch()
         res_body = json.loads(response.text)
         directive = deep_get(res_body, 'response.directives')[0]
@@ -197,13 +200,13 @@ class AudioPlayer:
         return audio_url
 
     def _play(self):
-        logging.getLogger().info('{} is called, current_player: {}'.format(call_stack()[0][3], self.current_player_name))
+        logger.info("{} is called, current_player: {}".format(call_stack()[0][3], self.current_player_name))
         self.player.play()
         self.current_state.playing_state = True
         self._set_led_state()
 
     def _pause(self):
-        logging.getLogger().info('{} is called, current_player: {}'.format(call_stack()[0][3], self.current_player_name))
+        logger.info("{} is called, current_player: {}".format(call_stack()[0][3], self.current_player_name))
         self.current_state.playing_state = False
         if not self.player.is_playing():
             return
@@ -235,12 +238,12 @@ class AudioPlayer:
 
     def _voice_mail_all_consumed(self, *args, **kwargs):    # pragma: no cover
         # callbacks for list_player
-        logging.getLogger().info('all voice mail consumed!!')
+        logger.info("all voice mail consumed!!")
         self.voice_mail_player.clean_playlist()
         self.restore_state()
 
     def _urgent_mail_all_consumed(self, *args, **kwargs):   # pragma: no cover
         # callbacks for list_player
-        logging.getLogger().info('all urgent mail consumed!!')
+        logger.info("all urgent mail consumed!!")
         self.urgent_mail_player.clean_playlist()
         self.restore_state()

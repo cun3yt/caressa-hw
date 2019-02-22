@@ -1,3 +1,6 @@
+[![Build Status](https://semaphoreci.com/api/v1/projects/90506832-0913-4cc8-8125-f32b1aacade5/2521956/badge.svg)](https://semaphoreci.com/caressa/caressa-hw)
+
+
 # Caressa Hardware Initiation
 
 ## Setting a New Device From Scratch
@@ -35,6 +38,7 @@ There are environment variables. All are supposed to be in `settings.py`.
 * In order to install the pygobject3 it requires the PKG_CONFIG_PATH varibale for `libffi`: 
 `export PKG_CONFIG_PATH=/usr/local/Cellar/libffi/3.2.1/lib/pkgconfig/`
 * `brew install pygobject3`
+* `pip install -r requirements/dev.txt`
 
 ## Development Ease
 
@@ -53,7 +57,6 @@ check?
 * Fill these fields in `config.json`:
     * client ID and secret: Authentication server client ID and secret.
     * user's ID and hash: User credentials
-    * hardware ID: any hardware specific ID
 
 ## Caressa Main Process Unit/Service File
 
@@ -73,7 +76,6 @@ The following environment variables are in use. You can set `.envrc` file with t
     * TWILIO_ACCOUNT_SID
     * TWILIO_AUTH_TOKEN
 * Pusher Account Variables
-    * PUSHER_APP_ID
     * PUSHER_KEY_ID
     * PUSHER_SECRET
     * PUSHER_CLUSTER
@@ -83,6 +85,7 @@ The following environment variables are in use. You can set `.envrc` file with t
 
 ## Running Tests
 
+* Install test requirements: `pip install -r requirements/test.txt`
 * `coverage run -m unittest discover > /tmp/null`
 * `coverage report`
 

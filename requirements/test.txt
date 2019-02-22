@@ -1,0 +1,7 @@
+# This file is intended to be used by the environment running the tests, CI and developer local machines.
+# Development dependencies are supposed to include this.
+
+-r ./base.txt
+
+responses==0.10.5   # patching requests library
+coverage==4.5.2

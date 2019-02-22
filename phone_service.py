@@ -1,11 +1,17 @@
-from twilio.rest import Client
 from settings import twilio_account_sid, twilio_auth_token
+from logger import get_logger
 
+from conditional_imports import get_phone_service
+
+Client = get_phone_service()    # Twilio Client
+
+
+logger = get_logger()
 client = Client(twilio_account_sid, twilio_auth_token)
 
 
 def make_urgency_call(*args, **kwargs):
-    print('making urgency call')
+    logger.info("making urgency call")
     call = client.calls.create(
         to="+14155337523",
         from_="+15109015152",
@@ -13,4 +19,5 @@ def make_urgency_call(*args, **kwargs):
         method="GET",
     )
 
-    print(call.sid)
+    logger.info(call.sid)
+    return call

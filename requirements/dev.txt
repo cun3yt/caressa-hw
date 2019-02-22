@@ -1,0 +1,5 @@
+# This dependencies are supposed to be used in the development local machines.
+
+-r ./test.txt
+
+ipdb==0.11

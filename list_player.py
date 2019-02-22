@@ -105,7 +105,7 @@ if __name__ == '__main__':
     lp = ListPlayer()
 
     def _internal(*args, **kwargs):
-        print('hello!')
+        print("hello!")
 
     lp.add_content(
         content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-1.mp3',
