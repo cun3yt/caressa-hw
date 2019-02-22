@@ -1,72 +1,107 @@
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GLib     # Gdk, GObject,
-
-from gpiozero import Button, LED
-from threading import Thread
+import json
 
 from audio_client import AudioClient
 from audio_player import AudioPlayer
-from settings import pusher, SUBDOMAIN as SERVER_URL
+from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, SUBDOMAIN as SERVER_URL
 from phone_service import make_urgency_call
+from logger import get_logger
 
-import json
+from conditional_imports import get_main_dependencies
 
+gi, Gtk, GLib, Button, Thread, Pusher, config_filename = get_main_dependencies()
 
 LEFT_BLACK_BTN_ID = 7
 RIGHT_BLACK_BTN_ID = 8
 BIG_RED_BTN_ID = 9
 SMALL_RED_BTN_ID = 10
 
+logger = get_logger()
 
-with open('config.json') as json_data_file:
-    conf = json.load(json_data_file)
 
-client = AudioClient(url=SERVER_URL,
-                     user_id=conf['user']['id'],
-                     user_password=conf['user']['hash'],
-                     device_id=conf['hardware']['id'],
-                     client_id=conf['api']['client_id'],
-                     client_secret=conf['api']['client_secret'], )
-channels_response = client.get_channels()
+# `user_channels` and `player` are set in `main()` function
+user_channels = []
+player = None
 
-channels_response_body = json.loads(channels_response.text)
-user_channels = channels_response_body['channels']
 
-player = AudioPlayer(client)
+class PusherService:
+    _instance = None
 
-volume_up_btn = Button(RIGHT_BLACK_BTN_ID)
-volume_up_btn.when_pressed = player.volume_up
+    def __init__(self):
+        raise ValueError("You cannot initiate PusherSingleton, instead use `get_instance()`")
 
-volume_down_btn = Button(LEFT_BLACK_BTN_ID)
-volume_down_btn.when_pressed = player.volume_down
-
-next_btn = Button(BIG_RED_BTN_ID)
-next_btn.when_pressed = player.next_command
-
-emergency_btn = Button(SMALL_RED_BTN_ID)
-emergency_btn.when_pressed = make_urgency_call
+    @classmethod
+    def get_instance(cls) -> Pusher:
+        if cls._instance is None:
+            cls._instance = Pusher(key=PUSHER_KEY_ID,
+                                   cluster=PUSHER_CLUSTER,
+                                   secure=True,
+                                   secret=PUSHER_SECRET)
+        return cls._instance
 
 
 def connect_handler(*args, **kwargs):
-    print('connect_handler')
+    logger.info("connect_handler")
 
-    for channel_id in user_channels:
-        channel = pusher.subscribe(channel_id)
-        channel.bind('voice_mail', player.voice_mail_arrived)
-        channel.bind('urgent_mail', player.urgent_mail_arrived)
-        print("connected to {channel_id}".format(channel_id=channel_id))
+    channels = kwargs.get('injected_user_channels', user_channels)
+    audio_player = kwargs.get('injected_player', player)
+
+    for channel_id in channels:
+        channel = PusherService.get_instance().subscribe(channel_id)
+        channel.bind('voice_mail', audio_player.voice_mail_arrived)
+        channel.bind('urgent_mail', audio_player.urgent_mail_arrived)
+        logger.info("connected to {channel_id}".format(channel_id=channel_id))
 
 
 def setup_realtime_update():
-    pusher.connection.bind('pusher:connection_established', connect_handler)
-    pusher.connect()
-    print('pusher is connected')
+    PusherService.get_instance().connection.bind('pusher:connection_established', connect_handler)
+    PusherService.get_instance().connect()
+    logger.info("pusher is connected")
+
+
+def setup_client():
+    with open(config_filename) as json_data_file:
+        conf = json.load(json_data_file)
+
+    client = AudioClient(url=SERVER_URL,
+                         user_id=conf['user']['id'],
+                         user_password=conf['user']['hash'],
+                         client_id=conf['api']['client_id'],
+                         client_secret=conf['api']['client_secret'], )
+    return client
+
+
+def setup_channels_and_player():
+    client = setup_client()
+
+    channels_response = client.get_channels()
+    channels_response_body = json.loads(channels_response.text)
+    _user_channels = channels_response_body['channels']
+    _player = AudioPlayer(client)
+
+    return _user_channels, _player
 
 
 def main():
+    global user_channels, player
+
+    user_channels, player = setup_channels_and_player()
+
+    volume_up_btn = Button(RIGHT_BLACK_BTN_ID)
+    volume_up_btn.when_pressed = player.volume_up
+
+    volume_down_btn = Button(LEFT_BLACK_BTN_ID)
+    volume_down_btn.when_pressed = player.volume_down
+
+    next_btn = Button(BIG_RED_BTN_ID)
+    next_btn.when_pressed = player.next_command
+
+    emergency_btn = Button(SMALL_RED_BTN_ID)
+    emergency_btn.when_pressed = make_urgency_call
+
     Thread(target=setup_realtime_update).start()
     Gtk.main()
+
+    return volume_up_btn, volume_down_btn, next_btn, emergency_btn
 
 
 if __name__ == '__main__':
