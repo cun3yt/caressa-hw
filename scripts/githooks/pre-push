@@ -1,0 +1,55 @@
+#!/bin/sh
+
+# Make sure to run below command while **under project root folder**.
+# If you already have a .git/hooks folder you should delete (or rename) it.
+# ln -s -f ./scripts/githooks/ .git/hooks
+
+source .envrc
+source ./tests/.override.envrc
+source ./scripts/init.sh
+
+RESULT=0
+CURRENT_BRANCH=`git rev-parse --abbrev-ref HEAD`
+
+if [ ${CURRENT_BRANCH} = "master" ]; then
+    echo "\033[0;31m"
+    echo "Refusing to push master branch."
+    echo "If you're fire-fighting, please use \033[0m--no-verify\033[0;31m to bypass this warning."
+    echo "This will also bypass local tests being run. You have been warned."
+    echo "\033[0m"
+    exit 1
+fi
+
+# Stash-related logic is hard to get right on every developer's machine.
+STASH_NAME="Git pre-push hook stash #${RANDOM}"
+
+# Test whether there are uncommitted changes to stash
+git diff --exit-code --quiet
+SHOULD_STASH=$?
+
+if [ ${SHOULD_STASH} = 1 ]; then
+    git stash save -q "${STASH_NAME}"
+fi
+
+run_python_unit_tests=false
+changed_files=(`git diff master --name-only`)
+for file in "${changed_files[@]}"; do
+    if [[ "$file" == *.py ]]; then
+        run_python_unit_tests=true
+        break
+    fi
+done
+
+if [ "$run_python_unit_tests" == true ]; then
+    printf "Unit testing Python... "
+    ${PROJECT_ROOT}/manage.py test
+    RESULT=$?
+fi
+
+if [ ${SHOULD_STASH} = 1 ]; then
+    STASH_ID=$(git stash list --format=%gd --grep="${STASH_NAME}")
+    git stash pop -q "${STASH_ID}" || true
+fi
+
+[ ${RESULT} -ne 0 ] && exit 1
+exit 0
