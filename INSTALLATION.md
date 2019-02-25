@@ -16,7 +16,7 @@
 1. Run remote build for the device (IDE)
 1. Install python dependencies:
     1. cd Work/
-    2. pip3 install -r requirements.txt
+    2. pip3 install -r requirements/hardware.txt
 1. sudo apt-get install vlc
 1. Setup Config
     1. Create user in admin panel
