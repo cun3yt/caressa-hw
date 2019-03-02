@@ -17,4 +17,6 @@ PUSHER_CLUSTER = getenv('PUSHER_CLUSTER')
 
 SUBDOMAIN = getenv('WEB_SUBDOMAIN')
 
+USER_ACTIVITY_LOG = "{server}/api/user-activity-log/".format(server=SUBDOMAIN)
+
 # todo: Decide on asserting being non-null existence or full operation of some of the services here.

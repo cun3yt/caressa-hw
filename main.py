@@ -5,6 +5,7 @@ from audio_player import AudioPlayer
 from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, SUBDOMAIN as SERVER_URL
 from phone_service import make_urgency_call
 from logger import get_logger
+from button import button_action
 
 from conditional_imports import get_main_dependencies
 
@@ -87,16 +88,16 @@ def main():
     user_channels, player = setup_channels_and_player()
 
     volume_up_btn = Button(RIGHT_BLACK_BTN_ID)
-    volume_up_btn.when_pressed = player.volume_up
+    volume_up_btn.when_pressed = button_action('press.volume-up', player.volume_up)
 
     volume_down_btn = Button(LEFT_BLACK_BTN_ID)
-    volume_down_btn.when_pressed = player.volume_down
+    volume_down_btn.when_pressed = button_action('press.volume-down', player.volume_down)
 
     next_btn = Button(BIG_RED_BTN_ID)
-    next_btn.when_pressed = player.next_command
+    next_btn.when_pressed = button_action('press.next-button', player.next_command)
 
     emergency_btn = Button(SMALL_RED_BTN_ID)
-    emergency_btn.when_pressed = make_urgency_call
+    emergency_btn.when_pressed = button_action('press.emergency-button', make_urgency_call)
 
     Thread(target=setup_realtime_update).start()
     Gtk.main()

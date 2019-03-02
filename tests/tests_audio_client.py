@@ -1,8 +1,9 @@
 import unittest
-from audio_client import AudioClient
-from unittest.mock import patch
 import responses
 import json
+
+from audio_client import AudioClient
+from unittest.mock import patch
 from urllib.parse import parse_qs
 
 
