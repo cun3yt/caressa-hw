@@ -12,12 +12,19 @@ client = Client(twilio_account_sid, twilio_auth_token)
 
 def make_urgency_call(*args, **kwargs):
     logger.info("making urgency call")
+
+    to = "+14155337523"
+    from_ = "+15109015152"
+    url = "https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/urgent-button-from-user-maggy.xml"
+
     call = client.calls.create(
-        to="+14155337523",
-        from_="+15109015152",
-        url="https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/urgent-button-from-user-maggy.xml",
+        to=to,
+        from_=from_,
+        url=url,
         method="GET",
     )
 
     logger.info(call.sid)
-    return call
+    logger.info("twilio call from: {from_} to: {to} url: {url}".format(from_=from_, to=to, url=url))
+
+    return {'command': 'twilio.call', 'from': from_, 'to': to, 'url': url}

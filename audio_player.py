@@ -1,4 +1,6 @@
 import json
+
+from button import button_action
 from logger import get_logger
 from inspect import stack as call_stack
 from state import State, StateStack
@@ -84,12 +86,15 @@ class AudioPlayer:
             self._pause()
             self.current_state = State(current_player='voice-mail', playing_state=False)
 
-        self.play_pause()
-        return
+        fn = self.play_pause()
+        return {'command': 'main',
+                'player': self.current_player_name,
+                'result': "fn-call.{}".format(getattr(fn, '__name__', fn))}
 
     def play_pause(self):
         fn = self._pause if self.current_state.playing_state else self._play
         Thread(target=fn).start()
+        return fn
 
     def urgent_mail_arrived(self, *args, **kwargs):
         logger.info("urgent mail arrived")
@@ -127,20 +132,29 @@ class AudioPlayer:
         new_vol = min(_VOLUME_MAX, current_vol + _VOLUME_INCREMENT)
         logger.info("volume up from {} to {}".format(current_vol, new_vol))
         self._mixer.setvolume(new_vol)
+        return {'command': 'volume-up', 'from': current_vol, 'to': new_vol}
 
     def volume_down(self, *args, **kwargs):
         current_vol, *_ = self._mixer.getvolume()
         new_vol = max(_VOLUME_MIN, current_vol - _VOLUME_INCREMENT)
         logger.info("volume down from {} to {}".format(current_vol, new_vol))
         self._mixer.setvolume(new_vol)
+        return {'command': 'volume-down', 'from': current_vol, 'to': new_vol}
 
     def next_command(self, *args, **kwargs):
+        result = {'command': 'next-command'}
+
         logger.info("next command came... current player: {}".format(self.current_player_name))
         if self.current_player_name == 'urgent-mail':
-            return
+            return {**result, 'current-state': 'urgent-mail-action', 'result': 'do-nothing', }
 
+        result = {**result, 'current-state': self.current_state.playing_state}
         fn = self.player.play_next if self.current_state.playing_state else self.play_pause
         fn()
+
+        return {**result,
+                'player': self.current_player_name,
+                'result': "fn-call.{}".format(getattr(fn, '__name__', fn))}
 
     @staticmethod
     def notify():
@@ -232,7 +246,7 @@ class AudioPlayer:
     def _init_btn(self):
         play_btn = voicehat.get_button()
         play_btn.debounce_time = _BTN_DEBOUNCE_TIME
-        play_btn.on_press(self.button_press_what_next)
+        play_btn.on_press(button_action('press.main-button', self.button_press_what_next))
         self._set_led_state()
         return play_btn
 
