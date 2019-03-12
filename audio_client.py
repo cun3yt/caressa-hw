@@ -22,6 +22,7 @@ class AudioClient:
         self._url = url
         self.streaming_url = '{}/streaming'.format(url)
         self.channel_url = '{}/api/users/me/channels/'.format(url)
+        self.user_data_url = '{}/api/users/me/'.format(url)
         self.user_id = kwargs.get('user_id')
         self.user_password = kwargs.get('user_password', '')
         self.client_id = kwargs.get('client_id')
@@ -33,8 +34,18 @@ class AudioClient:
             "User ID, Client ID and Client Secret cannot be null. Please check your configuration file"
         )
 
+    def get_user_data(self):
+        return self._common_request(self.user_data_url)
+
     def get_channels(self):
         return self._common_request(self.channel_url)
+
+    def post_button_action(self, url, method='POST', **kwargs):
+        self._common_request(url, method, **kwargs)
+
+    @staticmethod
+    def _is_success(status_code):
+        return status_code in (200, 201)
 
     def _common_request(self, url, method='GET', **kwargs):
         if not self.access_token:
@@ -45,15 +56,15 @@ class AudioClient:
 
         response = request(method=method, url=url, json=body, headers=headers)
 
-        if response.status_code == 200:
+        if self._is_success(response.status_code):
             return response
 
         response = self._refresh_access_token()
 
-        if response.status_code == 200:
+        if self._is_success(response.status_code):
             response = request(method=method, url=url, json=body, headers=headers)
 
-            if response.status_code == 200:
+            if self._is_success(response.status_code):
                 return response
 
         self._authenticate()
@@ -101,7 +112,7 @@ class AudioClient:
 
         # todo: tts "there is an account problem message", trigger message to Caressa team (e.g. datadog)"
         # todo: how to trap so that it will not repeat the message every X seconds specified in the service
-        assert res.status_code == 200, (
+        assert self._is_success(res.status_code), (
             "Authentication supposed to work, there must be some credentials problem"
         )
 
