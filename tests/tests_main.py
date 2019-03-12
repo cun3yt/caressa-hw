@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch
 from audio_player import AudioPlayer
+from audio_client import AudioClient
 from tests.mock.mock_api_client import ApiClient
 from main import PusherService, setup_client, setup_realtime_update, connect_handler, setup_user_channels_and_player, main
 from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, SUBDOMAIN as SERVER_URL
@@ -62,9 +63,12 @@ class TestMain(unittest.TestCase):
         mock_get_user_data.return_value = _Dummy(text='{"pk": 1}')
         mock_get_channels.return_value = _Dummy(text='{"channels": ["channel.X", "channel.Y"]}')
         mock_get_first_audio_url.return_value = 'https://example.com/audio-1.mp3'
-        channels, player, *_ = setup_user_channels_and_player()
+        channels, player, user_id, client = setup_user_channels_and_player()
         self.assertEqual(channels, ['channel.X', 'channel.Y'])
         self.assertIsInstance(player, AudioPlayer)
+        self.assertEqual(user_id, 1)
+        self.assertIsInstance(client, AudioClient)
+        self.assertEqual(player.client, client)
 
     @patch('main.setup_realtime_update')
     @patch('main.setup_user_channels_and_player')
