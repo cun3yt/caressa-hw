@@ -246,7 +246,7 @@ class AudioPlayer:
     def _init_btn(self):
         play_btn = voicehat.get_button()
         play_btn.debounce_time = _BTN_DEBOUNCE_TIME
-        play_btn.on_press(button_action('press.main-button', self.button_press_what_next))
+        play_btn.on_press(button_action('press.main-button', self.button_press_what_next, self.client))
         self._set_led_state()
         return play_btn
 

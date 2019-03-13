@@ -53,3 +53,7 @@ class ApiClient:
     @staticmethod
     def pause():
         return '{}'
+
+    @staticmethod
+    def post_button_action(url, method='POST', **kwargs):
+        pass
