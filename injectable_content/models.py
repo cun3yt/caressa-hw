@@ -131,7 +131,6 @@ class DeliveryRule:
 class InjectableContent:
     def __init__(self, *, audio_url, **kwargs):
         self._audio_url = audio_url
-
         self._jingle_url = kwargs.get('jingle_url')
 
         rule = kwargs.get('delivery_rule')
@@ -163,6 +162,14 @@ class InjectableContent:
             raise AttributeError("No attribute '{}' is available".format(item))
 
         return getattr(self, key_name)
+
+    @property
+    def is_alive(self):
+        return self.delivery_rule.is_alive()
+
+    @property
+    def is_expired(self):
+        return self.delivery_rule.is_expired()
 
     def export(self) -> str:
         data = {

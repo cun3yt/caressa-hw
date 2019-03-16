@@ -1,6 +1,7 @@
 import pytz
 import unittest
-from injectable_content import DatetimeSerializer, TimedeltaSerializer, DeliveryRule, InjectableContent
+from injectable_content.models import DatetimeSerializer, TimedeltaSerializer, DeliveryRule, InjectableContent
+from injectable_content.list import List
 from datetime import datetime, timedelta, timezone
 
 
@@ -264,6 +265,27 @@ class TestInjectableContent(unittest.TestCase):
         self.assertEqual(content.num_times_played, 2)
         self.assertEqual(content.previously_played, second_delivery_time)
 
+    def test_expired_past(self):
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    start=datetime.now(pytz.utc)-timedelta(days=5),
+                                    end=datetime.now(pytz.utc)-timedelta(days=3))
+        self.assertTrue(content.is_expired)
+        self.assertFalse(content.is_alive)
+
+    def test_not_expired_current(self):
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    start=datetime.now(pytz.utc) - timedelta(days=2),
+                                    end=datetime.now(pytz.utc) + timedelta(days=2))
+        self.assertFalse(content.is_expired)
+        self.assertTrue(content.is_alive)
+
+    def test_not_expired_upcoming(self):
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    start=datetime.now(pytz.utc) + timedelta(days=2),
+                                    end=datetime.now(pytz.utc) + timedelta(days=4))
+        self.assertFalse(content.is_expired)
+        self.assertTrue(content.is_alive)
+
 
 class TestInjectableExportImport(unittest.TestCase):
     @classmethod
@@ -324,3 +346,41 @@ class TestInjectableExportImport(unittest.TestCase):
         self.assertEqual(content.previously_played.day, 17)
         self.assertEqual(content.previously_played.microsecond, 123456)
         self.assertEqual(content.num_times_played, 12)
+
+
+class TestList(unittest.TestCase):
+    def setUp(self):
+        self.lst = List()
+        self.now = datetime.now(pytz.utc)
+        self.one_day = timedelta(days=1)
+        self.two_day = timedelta(days=2)
+
+    def test_list_add(self):
+        self.assertEqual(len(self.lst), 0)
+
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3')
+        self.lst.add(content)
+        self.assertEqual(len(self.lst), 1)
+
+    def test_collect_garbage(self):
+        content_current = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                            start=self.now-self.one_day,
+                                            end=self.now+self.one_day)
+        self.lst.add(content_current)
+
+        content_past = InjectableContent(audio_url='https://example.com/audio2.mp3',
+                                         start=self.now-self.two_day,
+                                         end=self.now-self.one_day)
+        self.lst.add(content_past)
+        self.assertEqual(len(self.lst), 2)
+
+        content_upcoming = InjectableContent(audio_url='https://example.com/audio3.mp3',
+                                             start=self.now+self.one_day,
+                                             end=self.now+self.two_day)
+        self.lst.add(content_upcoming)
+        self.assertEqual(len(self.lst), 3)
+
+        self.lst.collect_garbage()
+        self.assertEqual(len(self.lst), 2)
+        audio_urls = set(content.audio_url for content in self.lst.set())
+        self.assertEqual(audio_urls, {'https://example.com/audio1.mp3', 'https://example.com/audio3.mp3'})
