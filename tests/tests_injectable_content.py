@@ -286,6 +286,24 @@ class TestInjectableContent(unittest.TestCase):
         self.assertFalse(content.is_expired)
         self.assertTrue(content.is_alive)
 
+    def test_not_deliverable_past(self):
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    start=datetime.now(pytz.utc) - timedelta(days=5),
+                                    end=datetime.now(pytz.utc) - timedelta(days=3))
+        self.assertFalse(content.is_deliverable)
+
+    def test_deliverable_current(self):
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    start=datetime.now(pytz.utc) - timedelta(days=2),
+                                    end=datetime.now(pytz.utc) + timedelta(days=2))
+        self.assertTrue(content.is_deliverable)
+
+    def test_not_deliverable_upcoming(self):
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    start=datetime.now(pytz.utc) + timedelta(days=2),
+                                    end=datetime.now(pytz.utc) + timedelta(days=4))
+        self.assertFalse(content.is_deliverable)
+
 
 class TestInjectableExportImport(unittest.TestCase):
     @classmethod
@@ -355,6 +373,13 @@ class TestList(unittest.TestCase):
         self.one_day = timedelta(days=1)
         self.two_day = timedelta(days=2)
 
+        self.content_current = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                                 start=self.now - self.one_day, end=self.now + self.one_day)
+        self.content_past = InjectableContent(audio_url='https://example.com/audio2.mp3',
+                                              start=self.now - self.two_day, end=self.now - self.one_day)
+        self.content_upcoming = InjectableContent(audio_url='https://example.com/audio3.mp3',
+                                                  start=self.now + self.one_day, end=self.now + self.two_day)
+
     def test_list_add(self):
         self.assertEqual(len(self.lst), 0)
 
@@ -363,24 +388,35 @@ class TestList(unittest.TestCase):
         self.assertEqual(len(self.lst), 1)
 
     def test_collect_garbage(self):
-        content_current = InjectableContent(audio_url='https://example.com/audio1.mp3',
-                                            start=self.now-self.one_day,
-                                            end=self.now+self.one_day)
-        self.lst.add(content_current)
+        self.lst.add(self.content_current)
+        self.lst.add(self.content_past)
+        self.lst.add(self.content_upcoming)
 
-        content_past = InjectableContent(audio_url='https://example.com/audio2.mp3',
-                                         start=self.now-self.two_day,
-                                         end=self.now-self.one_day)
-        self.lst.add(content_past)
-        self.assertEqual(len(self.lst), 2)
-
-        content_upcoming = InjectableContent(audio_url='https://example.com/audio3.mp3',
-                                             start=self.now+self.one_day,
-                                             end=self.now+self.two_day)
-        self.lst.add(content_upcoming)
         self.assertEqual(len(self.lst), 3)
 
         self.lst.collect_garbage()
         self.assertEqual(len(self.lst), 2)
         audio_urls = set(content.audio_url for content in self.lst.set())
         self.assertEqual(audio_urls, {'https://example.com/audio1.mp3', 'https://example.com/audio3.mp3'})
+
+    def test_deliverables(self):
+        self.lst.add(self.content_current)
+        self.lst.add(self.content_past)
+        self.lst.add(self.content_upcoming)
+        self.assertEqual(len(self.lst), 3)
+
+        deliverables = self.lst.deliverables()
+
+        self.assertEqual(len(deliverables), 1)
+        self.assertEqual(deliverables[0].audio_url, 'https://example.com/audio1.mp3')
+
+    def test_export_import(self):
+        self.lst.add(self.content_current)
+        self.lst.add(self.content_past)
+
+        lst_exported = self.lst.export()
+        lst_imported = List.import_(lst_exported)
+
+        self.assertEqual(len(lst_imported), 2)
+        audio_urls = set(content.audio_url for content in lst_imported.set())
+        self.assertEqual(audio_urls, {'https://example.com/audio1.mp3', 'https://example.com/audio2.mp3'})

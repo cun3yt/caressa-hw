@@ -171,6 +171,11 @@ class InjectableContent:
     def is_expired(self):
         return self.delivery_rule.is_expired()
 
+    @property
+    def is_deliverable(self):
+        return self._delivery_rule.is_deliverable(num_times_played_before=self.num_times_played,
+                                                  previously_played=self.previously_played)
+
     def export(self) -> str:
         data = {
             'audio_url': self.audio_url,
