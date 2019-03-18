@@ -9,6 +9,7 @@ omit =
     tests_*.py
     conditional_imports.py
     settings.py
+    injectable_content/__init__.py
 
 [report]
 # skip_covered = True

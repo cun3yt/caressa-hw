@@ -3,6 +3,7 @@ import unittest
 from injectable_content.models import DatetimeSerializer, TimedeltaSerializer, DeliveryRule, InjectableContent
 from injectable_content.list import List
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 
 class TestDatetimeSerializer(unittest.TestCase):
@@ -415,8 +416,117 @@ class TestList(unittest.TestCase):
         self.lst.add(self.content_past)
 
         lst_exported = self.lst.export()
-        lst_imported = List.import_(lst_exported)
 
-        self.assertEqual(len(lst_imported), 2)
-        audio_urls = set(content.audio_url for content in lst_imported.set())
+        lst_new = List()
+        lst_new.import_(lst_exported)
+
+        self.assertEqual(len(lst_new), 2)
+        audio_urls = set(content.audio_url for content in lst_new.set())
         self.assertEqual(audio_urls, {'https://example.com/audio1.mp3', 'https://example.com/audio2.mp3'})
+
+    def test_fetch_none_when_empty(self):
+        self.assertIsNone(self.lst.fetch_one())
+
+    def test_fetch_none_when_all_expired(self):
+        self.lst.add(self.content_past)
+        self.assertIsNone(self.lst.fetch_one())
+
+    def test_fetch_when_one_current(self):
+        self.lst.add(self.content_current)
+        content = self.lst.fetch_one()
+        self.assertIsNotNone(content)
+        self.assertEqual(content.audio_url, 'https://example.com/audio1.mp3')
+
+    def test_fetch_none_when_all_upcoming(self):
+        self.lst.add(self.content_upcoming)
+        content = self.lst.fetch_one()
+        self.assertIsNone(content)
+
+    def test_fetch_twice_when_just_one_current(self):
+        self.lst.add(self.content_current)
+        self.lst.add(self.content_past)
+        self.lst.add(self.content_upcoming)
+
+        content = self.lst.fetch_one()
+        self.assertIsNotNone(content)
+        self.assertEqual(content.audio_url, 'https://example.com/audio1.mp3')
+
+        content.mark_delivery()
+
+        content = self.lst.fetch_one()
+        self.assertIsNone(content)
+
+    def test_clear(self):
+        self.lst.add(self.content_current)
+        self.lst.add(self.content_past)
+        self.lst.add(self.content_upcoming)
+        self.assertEqual(len(self.lst), 3)
+
+        self.lst.clear()
+        self.assertEqual(len(self.lst), 0)
+
+
+class TestListSyncCases(unittest.TestCase):
+    def setUp(self):
+        now = datetime.now(pytz.utc)
+        one_day = timedelta(days=1)
+        two_day = timedelta(days=2)
+
+        self.content_current = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                                 start=now - one_day, end=now + one_day)
+        self.content_past = InjectableContent(audio_url='https://example.com/audio2.mp3',
+                                              start=now - two_day, end=now - one_day)
+        self.content_upcoming = InjectableContent(audio_url='https://example.com/audio3.mp3',
+                                                  start=now + one_day, end=now + two_day)
+
+    def test_just_one_remote_function_raises(self):
+        with self.assertRaises(AssertionError):
+            List(download_fn=lambda: None)
+
+        with self.assertRaises(AssertionError):
+            List(upload_fn=lambda: None)
+
+    @patch('injectable_content.list.List.import_')
+    def test_none_download(self, mock_import):
+        lst = List()
+        lst.download()
+        mock_import.assert_not_called()
+
+    @patch('injectable_content.list.List.export')
+    def test_none_upload(self, mock_export):
+        lst = List()
+        lst.upload()
+        mock_export.assert_not_called()
+
+    def test_remote_import_export(self):
+        class Server:
+            lst_serialized = None
+
+            @classmethod
+            def upload(cls, lst_serialized):
+                cls.lst_serialized = lst_serialized
+
+            @classmethod
+            def download(cls):
+                return cls.lst_serialized
+
+        lst = List(download_fn=Server.download, upload_fn=Server.upload)
+
+        lst.add(self.content_upcoming)
+        lst.add(self.content_current)
+        lst.add(self.content_past)
+
+        self.assertEqual(len(lst), 3)
+
+        lst.upload()
+        lst.clear()
+
+        lst2 = List(download_fn=Server.download, upload_fn=Server.upload)
+        lst2.download()
+
+        self.assertEqual(len(lst), 0)
+        self.assertEqual(len(lst2), 3)
+
+        content = lst2.fetch_one()
+        self.assertIsNotNone(content)
+        self.assertEqual(content.audio_url, 'https://example.com/audio1.mp3')
