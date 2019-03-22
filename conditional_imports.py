@@ -8,14 +8,16 @@ def get_list_player_dependencies():
 
         gi.require_version('Gtk', '3.0')
         from gi.repository import Gtk, GLib  # Gdk, GObject,
-        return gi, vlc, Gtk, GLib
+        from threading import Thread
+        return gi, vlc, Gtk, GLib, Thread
 
     import tests.mock.mock_gi as gi
     from tests.mock import mock_vlc as vlc
 
     gi.require_version('Gtk', '3.0')
     from tests.mock.mock_gi.repository import Gtk, GLib     # Gdk, GObject,
-    return gi, vlc, Gtk, GLib
+    from tests.mock.mock_threading import Thread
+    return gi, vlc, Gtk, GLib, Thread
 
 
 def get_audio_player_dependencies():

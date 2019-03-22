@@ -23,6 +23,7 @@ class AudioClient:
         self.streaming_url = '{}/streaming'.format(url)
         self.channel_url = '{}/api/users/me/channels/'.format(url)
         self.user_data_url = '{}/api/users/me/'.format(url)
+        self.injectable_content_sync_url = '{}/api/users/me/user-content-repository/'.format(url)
         self.user_id = kwargs.get('user_id')
         self.user_password = kwargs.get('user_password', '')
         self.client_id = kwargs.get('client_id')
@@ -152,3 +153,13 @@ class AudioClient:
 
     def send_playback_started_signal(self, token):
         self._streaming_request(request_type='AudioPlayer.PlaybackStarted', token=token)
+
+    def injectable_content_download_fn(self) -> str:
+        response = self._common_request(self.injectable_content_sync_url)
+        return response.text
+        # res_body = json.loads(response.text)
+        # return res_body['injected_content_repository']
+
+    def injectable_content_upload_fn(self, content: str):
+        self._common_request(self.injectable_content_sync_url, method='PATCH',
+                             body={'injectable_content_sync_url': json.loads(content)}, )

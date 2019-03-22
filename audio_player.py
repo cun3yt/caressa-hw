@@ -6,6 +6,7 @@ from inspect import stack as call_stack
 from state import State, StateStack
 from list_player import ListPlayer
 from utils import deep_get
+from injectable_content.list import List as InjectableContentList
 
 from conditional_imports import get_audio_player_dependencies
 
@@ -42,6 +43,11 @@ class AudioPlayer:
 
         (self.main_player, self.voice_mail_player, self.urgent_mail_player, self.players) = \
             self._init_players()
+
+        self.injectable_content_list = InjectableContentList(download_fn=api_client.injectable_content_download_fn,
+                                                             upload_fn=api_client.injectable_content_upload_fn)
+
+        self.main_player.set_injectable_content_list(self.injectable_content_list)
 
         self.current_state = State(current_player='main', playing_state=False)  # type: State
         self.state_stack = StateStack()
