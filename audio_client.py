@@ -156,10 +156,9 @@ class AudioClient:
 
     def injectable_content_download_fn(self) -> str:
         response = self._common_request(self.injectable_content_sync_url)
-        return response.text
-        # res_body = json.loads(response.text)
-        # return res_body['injected_content_repository']
+        res_body = json.loads(response.text)
+        return json.dumps(res_body['injected_content_repository'])
 
     def injectable_content_upload_fn(self, content: str):
         self._common_request(self.injectable_content_sync_url, method='PATCH',
-                             body={'injectable_content_sync_url': json.loads(content)}, )
+                             body={'injected_content_repository': json.loads(content)}, )

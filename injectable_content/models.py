@@ -129,8 +129,9 @@ class DeliveryRule:
 
 
 class InjectableContent:
-    def __init__(self, *, audio_url, **kwargs):
+    def __init__(self, *, audio_url, hash_, **kwargs):
         self._audio_url = audio_url
+        self._hash_ = hash_
         self._jingle_url = kwargs.get('jingle_url')
 
         rule = kwargs.get('delivery_rule')
@@ -144,8 +145,8 @@ class InjectableContent:
         self._delivery_rule = rule if rule else DeliveryRule(start=kwargs.get('start'), end=kwargs.get('end'),
                                                              frequency=kwargs.get('frequency'))
 
-        self._previously_played = kwargs.get('previously_played')
-        self._num_times_played = kwargs.get('num_times_played', 0)
+        self._previously_played = kwargs.get('previously_played')   # this is hardware specific
+        self._num_times_played = kwargs.get('num_times_played', 0)  # this is hardware specific
 
     def mark_delivery(self, time: Optional[datetime] = None):
         time = time if time else _now()
@@ -179,6 +180,7 @@ class InjectableContent:
     def export(self) -> str:
         data = {
             'audio_url': self.audio_url,
+            'hash_': self.hash_,
             'jingle_url': self.jingle_url,
             'delivery_rule': self.delivery_rule.export(),
             'previously_played': DatetimeSerializer.export(self.previously_played),
@@ -197,6 +199,7 @@ class InjectableContent:
         num_times_played = content_dict.get('num_times_played', 0)
 
         return InjectableContent(audio_url=content_dict.get('audio_url'),
+                                 hash_=content_dict.get('hash_'),
                                  jingle_url=content_dict.get('jingle_url'),
                                  delivery_rule=delivery_rule,
                                  previously_played=previously_played,

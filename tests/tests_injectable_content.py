@@ -205,6 +205,7 @@ class TestInjectableContent(unittest.TestCase):
         rule = DeliveryRule()
         with self.assertRaises(AssertionError):
             InjectableContent(audio_url='https://example.com/audio1.mp3',
+                              hash_='123abc',
                               delivery_rule=rule,
                               start=datetime.now())
 
@@ -212,6 +213,7 @@ class TestInjectableContent(unittest.TestCase):
         rule = DeliveryRule()
         with self.assertRaises(AssertionError):
             InjectableContent(audio_url='https://example.com/audio1.mp3',
+                              hash_='123abc',
                               delivery_rule=rule,
                               end=datetime.now()+timedelta(minutes=5))
 
@@ -219,12 +221,14 @@ class TestInjectableContent(unittest.TestCase):
         rule = DeliveryRule()
         with self.assertRaises(AssertionError):
             InjectableContent(audio_url='https://example.com/audio1.mp3',
+                              hash_='123abc',
                               delivery_rule=rule,
                               frequency=timedelta(minutes=2))
 
     def test_default_properties(self):
-        content = InjectableContent(audio_url='https://example.com/audio1.mp3')
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3', hash_='123abc')
         self.assertEqual(content.audio_url, 'https://example.com/audio1.mp3')
+        self.assertEqual(content.hash_, '123abc')
         self.assertIsNone(content.jingle_url)
         self.assertIsInstance(content.delivery_rule, DeliveryRule)
         self.assertIsNone(content.previously_played)
@@ -235,7 +239,7 @@ class TestInjectableContent(unittest.TestCase):
                              end=datetime(2019, 4, 2, 17, 11, 2, 801285, tzinfo=pytz.utc),
                              frequency=timedelta(minutes=5), )
 
-        content = InjectableContent(audio_url='https://example.com/audio1.mp3', delivery_rule=_rule)
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3', hash_='123abc', delivery_rule=_rule, )
         rule = content.delivery_rule
 
         self.assertEqual(rule.start.month, 3)
@@ -248,12 +252,12 @@ class TestInjectableContent(unittest.TestCase):
         self.assertEqual(rule.frequency.total_seconds(), 5*60)
 
     def test_unknown_attribute(self):
-        content = InjectableContent(audio_url='https://example.com/audio1.mp3')
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3', hash_='123abc')
         with self.assertRaises(AttributeError):
             content.unknown_attribute
 
     def test_mark_delivery(self):
-        content = InjectableContent(audio_url='https://example.com/audio1.mp3')
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3', hash_='123abc')
         now = datetime.now(pytz.utc)
 
         delivery_time = now-timedelta(days=1)
@@ -268,6 +272,7 @@ class TestInjectableContent(unittest.TestCase):
 
     def test_expired_past(self):
         content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    hash_='123abc',
                                     start=datetime.now(pytz.utc)-timedelta(days=5),
                                     end=datetime.now(pytz.utc)-timedelta(days=3))
         self.assertTrue(content.is_expired)
@@ -275,6 +280,7 @@ class TestInjectableContent(unittest.TestCase):
 
     def test_not_expired_current(self):
         content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    hash_='123abc',
                                     start=datetime.now(pytz.utc) - timedelta(days=2),
                                     end=datetime.now(pytz.utc) + timedelta(days=2))
         self.assertFalse(content.is_expired)
@@ -282,6 +288,7 @@ class TestInjectableContent(unittest.TestCase):
 
     def test_not_expired_upcoming(self):
         content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    hash_='123abc',
                                     start=datetime.now(pytz.utc) + timedelta(days=2),
                                     end=datetime.now(pytz.utc) + timedelta(days=4))
         self.assertFalse(content.is_expired)
@@ -289,18 +296,21 @@ class TestInjectableContent(unittest.TestCase):
 
     def test_not_deliverable_past(self):
         content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    hash_='123abc',
                                     start=datetime.now(pytz.utc) - timedelta(days=5),
                                     end=datetime.now(pytz.utc) - timedelta(days=3))
         self.assertFalse(content.is_deliverable)
 
     def test_deliverable_current(self):
         content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    hash_='123abc',
                                     start=datetime.now(pytz.utc) - timedelta(days=2),
                                     end=datetime.now(pytz.utc) + timedelta(days=2))
         self.assertTrue(content.is_deliverable)
 
     def test_not_deliverable_upcoming(self):
         content = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                    hash_='123abc',
                                     start=datetime.now(pytz.utc) + timedelta(days=2),
                                     end=datetime.now(pytz.utc) + timedelta(days=4))
         self.assertFalse(content.is_deliverable)
@@ -310,11 +320,13 @@ class TestInjectableExportImport(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.content1 = InjectableContent(audio_url='https://example.com/audio1.mp3',
+                                         hash_='123abc',
                                          jingle_url='https://example.com/jingle1.mp3',
                                          start=datetime(2019, 3, 16, 5, 2, 52, 931285, tzinfo=pytz.utc),
                                          end=datetime(2019, 4, 2, 17, 11, 2, 801285, tzinfo=pytz.utc),
                                          frequency=DeliveryRule.FREQUENCY_ONE_TIME, )
         cls.content2 = InjectableContent(audio_url='https://example.com/audio2.mp3',
+                                         hash_='987zyx',
                                          start=datetime(2019, 2, 16, 5, 2, 52, 931285, tzinfo=pytz.utc),
                                          end=datetime(2019, 7, 2, 17, 11, 2, 801285, tzinfo=pytz.utc),
                                          frequency=timedelta(minutes=5),
@@ -325,6 +337,7 @@ class TestInjectableExportImport(unittest.TestCase):
         exported = self.content1.export()
         content = InjectableContent.import_(exported)
         self.assertEqual(content.audio_url, 'https://example.com/audio1.mp3')
+        self.assertEqual(content.hash_, '123abc')
         self.assertEqual(content.jingle_url, 'https://example.com/jingle1.mp3')
 
         self.assertEqual(content.delivery_rule.start.month, 3)
@@ -345,6 +358,7 @@ class TestInjectableExportImport(unittest.TestCase):
         content = InjectableContent.import_(exported)
 
         self.assertEqual(content.audio_url, 'https://example.com/audio2.mp3')
+        self.assertEqual(content.hash_, '987zyx')
         self.assertIsNone(content.jingle_url)
 
         self.assertEqual(content.delivery_rule.start.month, 2)
@@ -374,17 +388,17 @@ class TestList(unittest.TestCase):
         self.one_day = timedelta(days=1)
         self.two_day = timedelta(days=2)
 
-        self.content_current = InjectableContent(audio_url='https://example.com/audio1.mp3',
+        self.content_current = InjectableContent(audio_url='https://example.com/audio1.mp3', hash_='123abc',
                                                  start=self.now - self.one_day, end=self.now + self.one_day)
-        self.content_past = InjectableContent(audio_url='https://example.com/audio2.mp3',
+        self.content_past = InjectableContent(audio_url='https://example.com/audio2.mp3', hash_='456def',
                                               start=self.now - self.two_day, end=self.now - self.one_day)
-        self.content_upcoming = InjectableContent(audio_url='https://example.com/audio3.mp3',
+        self.content_upcoming = InjectableContent(audio_url='https://example.com/audio3.mp3', hash_='789ghi',
                                                   start=self.now + self.one_day, end=self.now + self.two_day)
 
     def test_list_add(self):
         self.assertEqual(len(self.lst), 0)
 
-        content = InjectableContent(audio_url='https://example.com/audio1.mp3')
+        content = InjectableContent(audio_url='https://example.com/audio1.mp3', hash_='abcdefg')
         self.lst.add(content)
         self.assertEqual(len(self.lst), 1)
 
@@ -465,6 +479,14 @@ class TestList(unittest.TestCase):
         self.lst.clear()
         self.assertEqual(len(self.lst), 0)
 
+    def test_not_addable_repeated_hash(self):
+        self.lst.add(self.content_current)
+        self.lst.add(InjectableContent(audio_url='https://example.com/audio4.mp3', hash_='123abc',
+                                       start=self.now - self.two_day, end=self.now + self.two_day))
+        self.assertEqual(len(self.lst), 1)
+        content = self.lst.fetch_one()
+        self.assertEqual(content.audio_url, 'https://example.com/audio1.mp3')
+
 
 class TestListSyncCases(unittest.TestCase):
     def setUp(self):
@@ -472,11 +494,11 @@ class TestListSyncCases(unittest.TestCase):
         one_day = timedelta(days=1)
         two_day = timedelta(days=2)
 
-        self.content_current = InjectableContent(audio_url='https://example.com/audio1.mp3',
+        self.content_current = InjectableContent(audio_url='https://example.com/audio1.mp3', hash_='abc123',
                                                  start=now - one_day, end=now + one_day)
-        self.content_past = InjectableContent(audio_url='https://example.com/audio2.mp3',
+        self.content_past = InjectableContent(audio_url='https://example.com/audio2.mp3', hash_='def456',
                                               start=now - two_day, end=now - one_day)
-        self.content_upcoming = InjectableContent(audio_url='https://example.com/audio3.mp3',
+        self.content_upcoming = InjectableContent(audio_url='https://example.com/audio3.mp3', hash_='ghi789',
                                                   start=now + one_day, end=now + two_day)
 
     def test_just_one_remote_function_raises(self):

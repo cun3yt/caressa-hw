@@ -1,6 +1,10 @@
 import json
 from injectable_content.models import InjectableContent
 from typing import Optional
+from logger import get_logger
+
+
+logger = get_logger()
 
 
 class List:
@@ -16,7 +20,22 @@ class List:
     def __len__(self):
         return len(self._lst)
 
+    def is_addable(self, content: InjectableContent) -> bool:
+        """
+        If content.hash_ is not the same as one of the hashes
+        in the list the content is addable to the list
+
+        :param content: InjectableContent
+        :return: bool
+        """
+
+        return content.hash_ not in [c.hash_ for c in self._lst]
+
     def add(self, content: InjectableContent):
+        if not self.is_addable(content):
+            logger.info('Content is not add-able, passing')
+            return
+
         self._lst.append(content)
 
     def set(self):
@@ -42,6 +61,13 @@ class List:
         """
 
         deliverables = self.deliverables()
+
+        print(len(deliverables), len(self))
+
+        if len(self) > 0:
+            print('there is some content')
+            print(self._lst[0].export())
+
         return deliverables[0] if len(deliverables) > 0 else None
 
     def clear(self):
@@ -65,4 +91,5 @@ class List:
 
     def import_(self, list_str):
         lst_list = json.loads(list_str)
+
         self._lst = [InjectableContent.import_(content_str) for content_str in lst_list]
