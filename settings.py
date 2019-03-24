@@ -19,4 +19,6 @@ SUBDOMAIN = getenv('WEB_SUBDOMAIN')
 
 USER_ACTIVITY_LOG = "{server}/api/user-activity-log/".format(server=SUBDOMAIN)
 
+DATETIME_TZ_FORMAT = '%Y-%m-%d %H:%M:%S%z'
 # todo: Decide on asserting being non-null existence or full operation of some of the services here.
+# todo Should we unify all time related variables to epoch!

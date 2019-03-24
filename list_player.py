@@ -150,13 +150,5 @@ if __name__ == '__main__':
     lp.add_content(
         content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-1.mp3',
                       follow_up_fn=_internal))
-    lp.add_content(
-        content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-2.mp3'))
-    lp.add_content(
-        content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-3.mp3'))
-    lp.add_content(
-        content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-4.mp3'))
-
     lp.play()
-
     Gtk.main()

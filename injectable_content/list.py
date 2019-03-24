@@ -2,6 +2,8 @@ import json
 from injectable_content.models import InjectableContent
 from typing import Optional
 from logger import get_logger
+from datetime import datetime
+from settings import DATETIME_TZ_FORMAT
 
 
 logger = get_logger()
@@ -62,13 +64,6 @@ class List:
         """
 
         deliverables = self.deliverables()
-
-        print(len(deliverables), len(self))
-
-        if len(self) > 0:
-            print('there is some content')
-            print(self._lst[0].export())
-
         return deliverables[0] if len(deliverables) > 0 else None
 
     def clear(self):
@@ -89,6 +84,7 @@ class List:
     def fetch_from_api(self):
         if self._api_fetch_fn is None:
             return
+
         content_lst = self._api_fetch_fn()
 
         from injectable_content.models import DeliveryRule
@@ -97,8 +93,13 @@ class List:
             audio_url = content.get('audio_url')
             hash_ = content.get('hash')
             delivery_rule = content.get('delivery_rule', {})
+
             start = delivery_rule.get('start', None)
+            start = datetime.strptime(start, DATETIME_TZ_FORMAT) if isinstance(start, str) else start
+
             end = delivery_rule.get('end', None)
+            end = datetime.strptime(end, DATETIME_TZ_FORMAT) if isinstance(end, str) else end
+
             frequency = delivery_rule.get('frequency', None)
             frequency = DeliveryRule.FREQUENCY_ONE_TIME if frequency == 0 else frequency
 
