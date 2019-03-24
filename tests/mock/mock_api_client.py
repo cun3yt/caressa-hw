@@ -65,3 +65,7 @@ class ApiClient:
     @staticmethod
     def injectable_content_upload_fn(content: str):
         return
+
+    @staticmethod
+    def injectable_content_fetch_available_content_fn():
+        return []

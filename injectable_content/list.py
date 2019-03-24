@@ -8,7 +8,7 @@ logger = get_logger()
 
 
 class List:
-    def __init__(self, lst=None, download_fn=None, upload_fn=None):
+    def __init__(self, lst=None, download_fn=None, upload_fn=None, api_fetch_fn=None):
         self._lst = lst if lst else []
         assert (download_fn is None and upload_fn is None) or \
                (download_fn is not None and upload_fn is not None), (
@@ -16,6 +16,7 @@ class List:
         )
         self._download_fn = download_fn
         self._upload_fn = upload_fn
+        self._api_fetch_fn = api_fetch_fn
 
     def __len__(self):
         return len(self._lst)
@@ -84,6 +85,28 @@ class List:
             return
         export_str = self.export()
         self._upload_fn(export_str)
+
+    def fetch_from_api(self):
+        if self._api_fetch_fn is None:
+            return
+        content_lst = self._api_fetch_fn()
+
+        from injectable_content.models import DeliveryRule
+
+        for content in content_lst:
+            audio_url = content.get('audio_url')
+            hash_ = content.get('hash')
+            delivery_rule = content.get('delivery_rule', {})
+            start = delivery_rule.get('start', None)
+            end = delivery_rule.get('end', None)
+            frequency = delivery_rule.get('frequency', None)
+            frequency = DeliveryRule.FREQUENCY_ONE_TIME if frequency == 0 else frequency
+
+            self.add(InjectableContent(audio_url=audio_url,
+                                       hash_=hash_,
+                                       start=start,
+                                       end=end,
+                                       frequency=frequency))
 
     def export(self) -> str:
         lst = [content.export() for content in self._lst]

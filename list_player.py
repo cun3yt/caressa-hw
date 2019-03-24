@@ -45,6 +45,7 @@ class ListPlayer:
         """
         self._injectable_content_list = injectable_content_list
         self._injectable_content_list.download()
+        self._injectable_content_list.fetch_from_api()  # todo Not tested yet
 
     def play(self, *args):
         if self.player.is_playing():

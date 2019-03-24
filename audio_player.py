@@ -46,7 +46,8 @@ class AudioPlayer:
             self._init_players()
 
         self.injectable_content_list = InjectableContentList(download_fn=api_client.injectable_content_download_fn,
-                                                             upload_fn=api_client.injectable_content_upload_fn)
+                                                             upload_fn=api_client.injectable_content_upload_fn,
+                                                             api_fetch_fn=api_client.injectable_content_fetch_available_content_fn)
 
         self.main_player.set_injectable_content_list(self.injectable_content_list)
 

@@ -58,12 +58,15 @@ class TestMain(unittest.TestCase):
 
     @patch('audio_player.AudioPlayer._get_first_audio_url')
     @patch('audio_client.AudioClient.injectable_content_download_fn')
+    @patch('audio_client.AudioClient.injectable_content_fetch_available_content_fn')
     @patch('audio_client.AudioClient.get_channels')
     @patch('audio_client.AudioClient.get_user_data')
     def test_setup_user_channels_and_player(self, mock_get_user_data, mock_get_channels,
+                                            mock_injectable_content_fetch_available_content_fn,
                                             mock_inj_content_download_fn, mock_get_first_audio_url):
         mock_get_user_data.return_value = _Dummy(text='{"pk": 1}')
         mock_get_channels.return_value = _Dummy(text='{"channels": ["channel.X", "channel.Y"]}')
+        mock_injectable_content_fetch_available_content_fn.return_value = []
         mock_inj_content_download_fn.return_value = '[]'
         mock_get_first_audio_url.return_value = 'https://example.com/audio-1.mp3'
         channels, player, user_id, client = setup_user_channels_and_player()
