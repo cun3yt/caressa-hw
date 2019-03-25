@@ -31,7 +31,7 @@ class PusherService:
     _instance = None
 
     def __init__(self):
-        raise ValueError("You cannot initiate PusherSingleton, instead use `get_instance()`")
+        raise ValueError("You cannot initiate PusherService, instead use `get_instance()`")
 
     @classmethod
     def get_instance(cls) -> Pusher:
@@ -46,6 +46,10 @@ class PusherService:
 def handle_mail(audio_player, msg_type):
 
     def _send_to_player(*args, **kwargs):
+        global user_id
+
+        user_id = kwargs.get('dependency_injection_user_id', user_id)   # main for testing
+
         data = json.loads(args[0])
         url = data.get('url')
 
@@ -87,6 +91,7 @@ def handle_mail(audio_player, msg_type):
             audio_player.injectable_content_arrived(data)   # different from the others this gets the whole data
         else:
             logger.error("Unknown message type for handle_mail function: {}".format(msg_type))
+            return
 
     return _send_to_player
 

@@ -552,3 +552,37 @@ class TestListSyncCases(unittest.TestCase):
         content = lst2.fetch_one()
         self.assertIsNotNone(content)
         self.assertEqual(content.audio_url, 'https://example.com/audio1.mp3')
+
+    def test_none_fetch_from_api(self):
+        lst = List()
+        with self.assertLogs(level='DEBUG') as context_manager:
+            lst.fetch_from_api()
+        self.assertIn('DEBUG:root:List._api_fetch_fn is not set', context_manager.output)
+
+    def test_fetch_from_api(self):
+        def _api_fetch_fn():
+            return [{
+                'audio_url': 'https://example.com/audio1.mp3',
+                'hash': 'abc123',
+                'delivery_rule': {
+                    'start': "2019-03-23 01:00:00-0700",
+                    'end': "3456-03-24 16:00:00-0700",
+                    'frequency': 0,
+                }
+            }]
+
+        lst = List(api_fetch_fn=_api_fetch_fn)
+        lst.fetch_from_api()
+        self.assertEqual(len(lst), 1)
+
+        content = lst.deliverables()[0]
+        self.assertEqual(content.audio_url, 'https://example.com/audio1.mp3')
+        self.assertEqual(content.hash_, 'abc123')
+        delivery_rule = content.delivery_rule
+        from settings import DATETIME_TZ_FORMAT
+
+        self.assertEqual(delivery_rule.start, datetime.strptime("2019-03-23 01:00:00-0700",
+                                                                DATETIME_TZ_FORMAT))
+        self.assertEqual(delivery_rule.end, datetime.strptime("3456-03-24 16:00:00-0700",
+                                                              DATETIME_TZ_FORMAT))
+        self.assertEqual(delivery_rule.frequency, DeliveryRule.FREQUENCY_ONE_TIME)

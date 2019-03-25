@@ -1,5 +1,5 @@
 import json
-from injectable_content.models import InjectableContent
+from injectable_content.models import InjectableContent, DeliveryRule
 from typing import Optional
 from logger import get_logger
 from datetime import datetime
@@ -83,11 +83,10 @@ class List:
 
     def fetch_from_api(self):
         if self._api_fetch_fn is None:
+            logger.debug('List._api_fetch_fn is not set')
             return
 
         content_lst = self._api_fetch_fn()
-
-        from injectable_content.models import DeliveryRule
 
         for content in content_lst:
             audio_url = content.get('audio_url')

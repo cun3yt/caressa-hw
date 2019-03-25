@@ -76,6 +76,14 @@ class TestAudioPlayer(unittest.TestCase):
         self.audio_player.play_pause()
         self.assertFalse(self.audio_player.current_state.playing_state)
 
+    def test_injectable_content_arrived(self):
+        data = {
+            'url': 'https://example.com/audio1.mp3',
+            'hash': 'abc1234',
+        }
+        self.audio_player.injectable_content_arrived(data)
+        self.assertEqual(len(self.audio_player.injectable_content_list), 1)
+
     @patch('audio_player.AudioPlayer.set_volume_minimum')
     @patch('audio_player.AudioPlayer.notify')
     def test_urgent_mail_arrived_during_main_stop(self, mock_notify, mock_set_vol_min):
