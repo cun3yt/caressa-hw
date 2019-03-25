@@ -47,9 +47,19 @@ class TestAudioClient(unittest.TestCase):
         self.assertEqual(audio_client.user_password, 'qwerasdf1234')
 
     @patch('audio_client.AudioClient._common_request')
+    def test_get_user_data(self, mock_common_request):
+        self.client.get_user_data()
+        mock_common_request.assert_called_once_with('https://example.com/api/users/me/')
+
+    @patch('audio_client.AudioClient._common_request')
     def test_fetching_channels(self, mock_common_request):
         self.client.get_channels()
         mock_common_request.assert_called_once_with('https://example.com/api/users/me/channels/')
+
+    @patch('audio_client.AudioClient._common_request')
+    def test_fetching_channels(self, mock_common_request):
+        self.client.post_button_action('https://example.com/button-actions/', 'POST')
+        mock_common_request.assert_called_once_with('https://example.com/button-actions/', 'POST')
 
     @responses.activate
     @patch('audio_client.AudioClient._authenticate')
@@ -261,3 +271,33 @@ class TestAudioClient(unittest.TestCase):
     def test_playback_started(self, mock_streaming_request):
         self.client.send_playback_started_signal('token-value')
         mock_streaming_request.assert_called_once_with(request_type='AudioPlayer.PlaybackStarted', token='token-value')
+
+    @patch('audio_client.AudioClient._common_request')
+    def test_injectable_content_download_fn(self, mock_common_request):
+        mock_common_request.return_value = _Response(status_code=200,
+                                                     text='{"injected_content_repository": '
+                                                          '[{"audio_url": "https://example.com/audio1.mp3",'
+                                                          ' "hash": "abc123"}]}')
+        res = self.client.injectable_content_download_fn()
+        self.assertEqual(json.loads(res), [{"audio_url": "https://example.com/audio1.mp3", "hash": "abc123"}])
+
+    @patch('audio_client.AudioClient._common_request')
+    def test_injectable_content_upload_fn(self, mock_common_request):
+        content = '[{"audio_url": "https://example.com/audio1.mp3", "hash": "abc123"}]'
+        self.client.injectable_content_upload_fn(content)
+        mock_common_request.assert_called_once_with("https://example.com/api/users/me/user-content-repository/",
+                                                    method='PATCH',
+                                                    body={'injected_content_repository': [
+                                                        {"audio_url": "https://example.com/audio1.mp3",
+                                                         "hash": "abc123", }
+                                                    ]})
+
+    @patch('audio_client.AudioClient._common_request')
+    def test_injectable_content_fetch_available_content_fn(self, mock_common_request):
+        mock_common_request.return_value = _Response(status_code=200,
+                                                     text='{"results": '
+                                                          '[{"audio_url": "https://example.com/audio1.mp3",'
+                                                          ' "hash": "abc123"}]}')
+        res = self.client.injectable_content_fetch_available_content_fn()
+        mock_common_request.assert_called_once_with('https://example.com/api/users/me/contents/')
+        self.assertEqual(res, [{"audio_url": "https://example.com/audio1.mp3", "hash": "abc123"}])

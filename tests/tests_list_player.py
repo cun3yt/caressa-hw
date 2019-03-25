@@ -1,6 +1,11 @@
 import unittest
 from list_player import Audio, ListPlayer
 import logging
+import pytz
+from injectable_content.list import List as InjectableContentList
+from injectable_content.models import InjectableContent
+from datetime import datetime, timedelta
+from unittest.mock import patch
 
 
 class TestAudio(unittest.TestCase):
@@ -80,6 +85,53 @@ class TestListPlayer(unittest.TestCase):
         self.assertFalse(lp.is_playing())
         self.assertRaises(ValueError, lp.play_next)
         self.assertTrue(lp.is_playing())
+
+    @patch('injectable_content.list.List.download')
+    @patch('injectable_content.list.List.fetch_from_api')
+    def test_play_with_injectable_content_at_beginning(self, mock_fetch_from_api, mock_download):
+        lp = ListPlayer()
+        lp.add_content(content='http://example.com/audio_1.mp3')
+        lp.add_content(content='http://example.com/audio_2.mp3')
+
+        self.now = datetime.now(pytz.utc)
+        self.one_day = timedelta(days=1)
+        self.two_day = timedelta(days=2)
+
+        content_current = InjectableContent(audio_url='https://example.com/audio1.mp3', hash_='123abc',
+                                            start=self.now - self.one_day, end=self.now + self.one_day)
+        content_upcoming = InjectableContent(audio_url='https://example.com/audio3.mp3', hash_='789ghi',
+                                             start=self.now + self.one_day, end=self.now + self.two_day)
+
+        injectable_content_list = InjectableContentList()
+        injectable_content_list.add(content_current)
+        injectable_content_list.add(content_upcoming)
+
+        lp.set_injectable_content_list(injectable_content_list)
+        lp.play()
+        self.assertTrue(lp.is_playing())
+        self.assertEqual(lp.count, 2)
+
+    @patch('injectable_content.list.List.download')
+    @patch('injectable_content.list.List.fetch_from_api')
+    def test_play_with_injectable_content_upcoming_at_beginning(self, mock_fetch_from_api, mock_download):
+        lp = ListPlayer()
+        lp.add_content(content='http://example.com/audio_1.mp3')
+        lp.add_content(content='http://example.com/audio_2.mp3')
+
+        self.now = datetime.now(pytz.utc)
+        self.one_day = timedelta(days=1)
+        self.two_day = timedelta(days=2)
+
+        content_upcoming = InjectableContent(audio_url='https://example.com/audio3.mp3', hash_='789ghi',
+                                             start=self.now + self.one_day, end=self.now + self.two_day)
+
+        injectable_content_list = InjectableContentList()
+        injectable_content_list.add(content_upcoming)
+
+        lp.set_injectable_content_list(injectable_content_list)
+        lp.play()
+        self.assertTrue(lp.is_playing())
+        self.assertEqual(lp.count, 1)
 
     def test_pause(self):
         lp = ListPlayer()

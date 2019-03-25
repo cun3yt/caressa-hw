@@ -1,4 +1,5 @@
 import json
+import pytz
 
 from audio_client import AudioClient
 from audio_player import AudioPlayer
@@ -6,6 +7,7 @@ from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, SUBDOMAIN as 
 from phone_service import make_urgency_call
 from logger import get_logger
 from button import button_action
+from datetime import datetime
 
 from conditional_imports import get_main_dependencies
 
@@ -29,7 +31,7 @@ class PusherService:
     _instance = None
 
     def __init__(self):
-        raise ValueError("You cannot initiate PusherSingleton, instead use `get_instance()`")
+        raise ValueError("You cannot initiate PusherService, instead use `get_instance()`")
 
     @classmethod
     def get_instance(cls) -> Pusher:
@@ -44,6 +46,10 @@ class PusherService:
 def handle_mail(audio_player, msg_type):
 
     def _send_to_player(*args, **kwargs):
+        global user_id
+
+        user_id = kwargs.get('dependency_injection_user_id', user_id)   # main for testing
+
         data = json.loads(args[0])
         url = data.get('url')
 
@@ -73,8 +79,19 @@ def handle_mail(audio_player, msg_type):
             audio_player.voice_mail_arrived(url)
         elif msg_type == 'urgent_mail':
             audio_player.urgent_mail_arrived(url)
+        elif msg_type == 'injectable_content':
+            start = data.get('start')
+            if start:   # supposed to be epoch
+                data['start'] = datetime.fromtimestamp(start, tz=pytz.utc)
+
+            end = data.get('end')
+            if end:     # supposed to be epoch
+                data['end'] = datetime.fromtimestamp(end, tz=pytz.utc)
+
+            audio_player.injectable_content_arrived(data)   # different from the others this gets the whole data
         else:
             logger.error("Unknown message type for handle_mail function: {}".format(msg_type))
+            return
 
     return _send_to_player
 
@@ -89,6 +106,7 @@ def connect_handler(*args, **kwargs):
         channel = PusherService.get_instance().subscribe(channel_id)
         channel.bind('voice_mail', handle_mail(audio_player, 'voice_mail'))
         channel.bind('urgent_mail', handle_mail(audio_player, 'urgent_mail'))
+        channel.bind('injectable_content', handle_mail(audio_player, 'injectable_content'))
         logger.info("connected to {channel_id}".format(channel_id=channel_id))
 
 

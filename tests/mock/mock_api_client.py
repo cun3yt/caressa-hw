@@ -57,3 +57,15 @@ class ApiClient:
     @staticmethod
     def post_button_action(url, method='POST', **kwargs):
         pass
+
+    @staticmethod
+    def injectable_content_download_fn() -> str:
+        return '[]'
+
+    @staticmethod
+    def injectable_content_upload_fn(content: str):
+        return
+
+    @staticmethod
+    def injectable_content_fetch_available_content_fn():
+        return []

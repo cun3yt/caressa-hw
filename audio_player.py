@@ -6,6 +6,8 @@ from inspect import stack as call_stack
 from state import State, StateStack
 from list_player import ListPlayer
 from utils import deep_get
+from injectable_content.models import InjectableContent
+from injectable_content.list import List as InjectableContentList
 
 from conditional_imports import get_audio_player_dependencies
 
@@ -42,6 +44,12 @@ class AudioPlayer:
 
         (self.main_player, self.voice_mail_player, self.urgent_mail_player, self.players) = \
             self._init_players()
+
+        self.injectable_content_list = InjectableContentList(download_fn=api_client.injectable_content_download_fn,
+                                                             upload_fn=api_client.injectable_content_upload_fn,
+                                                             api_fetch_fn=api_client.injectable_content_fetch_available_content_fn)
+
+        self.main_player.set_injectable_content_list(self.injectable_content_list)
 
         self.current_state = State(current_player='main', playing_state=False)  # type: State
         self.state_stack = StateStack()
@@ -95,6 +103,15 @@ class AudioPlayer:
         fn = self._pause if self.current_state.playing_state else self._play
         Thread(target=fn).start()
         return fn
+
+    def injectable_content_arrived(self, *args, **kwargs):
+        data = args[0]
+        url, start, end, hash_ = data.get('url'), data.get('start'), data.get('end'), data.get('hash')
+
+        content = InjectableContent(audio_url=url, hash_=hash_, start=start, end=end)
+        self.injectable_content_list.add(content)
+
+        logger.info("injectable_content arrived with hash: {}, url: {}".format(hash_, url))
 
     def urgent_mail_arrived(self, *args, **kwargs):
         logger.info("urgent mail arrived")

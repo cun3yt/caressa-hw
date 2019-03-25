@@ -1,7 +1,8 @@
 from collections import deque
 from conditional_imports import get_list_player_dependencies
+from typing import Optional
 
-gi, vlc, Gtk, GLib = get_list_player_dependencies()
+gi, vlc, Gtk, GLib, Thread = get_list_player_dependencies()
 
 
 # instance of this class must pause the play, collect the response and send it ...
@@ -27,11 +28,24 @@ class ListPlayer:
         self.queue = deque()
         self.player = vlc.MediaPlayer()
 
+        self._injectable_content_list = None     # type: Optional['injectable_content.list.List']
+
         self._next_item_callback = kwargs.get('next_item_callback', lambda: 0)
         self._list_finished_callback = kwargs.get('list_finished_callback', lambda: 0)
 
         self._bind_default_events()
         self._content_follow_fn = None      # current content's follow up function if any
+
+    def set_injectable_content_list(self, injectable_content_list):
+        """
+        This function has a side effect of downloading the content for the signed-in user
+
+        :param injectable_content_list:
+        :return:
+        """
+        self._injectable_content_list = injectable_content_list
+        self._injectable_content_list.download()
+        self._injectable_content_list.fetch_from_api()  # todo Not tested yet
 
     def play(self, *args):
         if self.player.is_playing():
@@ -54,11 +68,37 @@ class ListPlayer:
 
         self.play_next()
 
+    def _fetch_injectable_content(self):
+        """
+        This function is overloaded in terms of responsibilities
+
+        :return:
+        """
+        if not self._injectable_content_list:
+            return None
+        _content = self._injectable_content_list.fetch_one()
+        if _content is None:
+            return None
+        _content.mark_delivery()
+
+        # upload here.
+        def _run_garbage_collection_and_upload():
+            self._injectable_content_list.collect_garbage()
+            self._injectable_content_list.upload()
+
+        Thread(target=_run_garbage_collection_and_upload).start()
+
+        # todo there is jingle_url also but not currently playable in list_player
+        return Audio(url=_content.audio_url)
+
     def play_next(self):
         self._content_follow_fn = None
 
+        content = self._fetch_injectable_content()
+
         # todo: What to do if the queue is empty??
-        content = self.queue.popleft()  # type: Audio
+        content = content if content else self.queue.popleft()  # type: Audio
+
         self._content_follow_fn = content.follow_up_fn
 
         def _play():
@@ -110,13 +150,5 @@ if __name__ == '__main__':
     lp.add_content(
         content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-1.mp3',
                       follow_up_fn=_internal))
-    lp.add_content(
-        content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-2.mp3'))
-    lp.add_content(
-        content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-3.mp3'))
-    lp.add_content(
-        content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-4.mp3'))
-
     lp.play()
-
     Gtk.main()
