@@ -1,8 +1,10 @@
 # Setting Up A New Device
 
-1. balino-etcher >> burn aiyprojects-2018-08-03.img.xz file to sd
-    1. cd /Users/cuneyt/Desktop/2_caressa/hardware/hw-package-modification/
-1. Installation of speaker, ...
+1. Install BalenaEtcher to burn a Raspberry PI image.
+1. Download aiyprojects-2018-08-03.tar extract it to `aiyprojects-2018-08-03.img.xz`.
+1. Start BalenaEtcher, burn `aiyprojects-2018-08-03.img.xz` file to the SD card:
+    1. Example location: /Users/cuneyt/Desktop/2_caressa/hardware/hw-package-modification/
+1. Installation of the speaker, ...
     1. echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
 1. check sound etc.
 1. ifconfig to get IP
