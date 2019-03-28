@@ -8,9 +8,6 @@ if ENV not in possible_envs:
     raise Exception("ENV environment variable must be set. "
                     "Possible values: {}".format(', '.join(possible_envs)))
 
-twilio_account_sid = getenv('TWILIO_ACCOUNT_SID')
-twilio_auth_token = getenv('TWILIO_AUTH_TOKEN')
-
 PUSHER_KEY_ID = getenv('PUSHER_KEY_ID')
 PUSHER_SECRET = getenv('PUSHER_SECRET')
 PUSHER_CLUSTER = getenv('PUSHER_CLUSTER')

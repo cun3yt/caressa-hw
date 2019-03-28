@@ -25,6 +25,7 @@ class AudioClient:
         self.user_data_url = '{}/api/users/me/'.format(url)
         self.injectable_content_sync_url = '{}/api/users/me/user-content-repository/'.format(url)
         self.injectable_content_api_url = '{}/api/users/me/contents/'.format(url)
+        self.service_request_url = '{}/api/users/me/service-requests/'.format(url)
         self.user_id = kwargs.get('user_id')
         self.user_password = kwargs.get('user_password', '')
         self.client_id = kwargs.get('client_id')
@@ -41,6 +42,9 @@ class AudioClient:
 
     def get_channels(self):
         return self._common_request(self.channel_url)
+
+    def make_service_request(self):
+        return self._common_request(self.service_request_url, 'POST')
 
     def post_button_action(self, url, method='POST', **kwargs):
         self._common_request(url, method, **kwargs)

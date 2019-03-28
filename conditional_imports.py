@@ -35,15 +35,6 @@ def get_audio_player_dependencies():
     return os_call, Thread, AlsaMixer, alsa_mixers, voicehat
 
 
-def get_phone_service():
-    if ENV != 'test':
-        from twilio.rest import Client
-        return Client
-
-    from tests.mock.mock_twilio.rest import Client
-    return Client
-
-
 def get_main_dependencies():
     if ENV != 'test':
         import gi

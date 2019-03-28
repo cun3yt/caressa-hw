@@ -73,9 +73,6 @@ The following environment variables are in use. You can set `.envrc` file with t
 
 * ENV: Environment, e.g. 'dev', 'test', 'stage', 'prod'
 * VIRTUAL_ENV_PATH: local directory path to virtual environment (e.g. /Users/cuneyt/Work/caressa_hw/venv/)
-* Twilio Account Variables
-    * TWILIO_ACCOUNT_SID
-    * TWILIO_AUTH_TOKEN
 * Pusher Account Variables
     * PUSHER_KEY_ID
     * PUSHER_SECRET
