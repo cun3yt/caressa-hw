@@ -156,13 +156,13 @@ def main():
     next_btn = Button(BIG_RED_BTN_ID)
     next_btn.when_pressed = button_action('press.next-button', player.next_command, client)
 
-    emergency_btn = Button(SMALL_RED_BTN_ID)
-    emergency_btn.when_pressed = button_action('press.emergency-button', client.make_service_request, client)
+    service_btn = Button(SMALL_RED_BTN_ID)
+    service_btn.when_pressed = button_action('press.service-button', client.make_service_request, client)
 
     Thread(target=setup_realtime_update).start()
     Gtk.main()
 
-    return volume_up_btn, volume_down_btn, next_btn, emergency_btn
+    return volume_up_btn, volume_down_btn, next_btn, service_btn
 
 
 if __name__ == '__main__':

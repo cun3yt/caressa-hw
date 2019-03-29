@@ -85,12 +85,12 @@ class TestMain(unittest.TestCase):
 
         mock_setup_user_channels_and_player.return_value = \
             (['channel.X', 'channel.Y'], AudioPlayer(client), 1, client)
-        volume_up_btn, volume_down_btn, next_btn, emergency_btn = main()
+        volume_up_btn, volume_down_btn, next_btn, service_btn = main()
         mock_setup_realtime_update.assert_called_once_with()    # todo problem here
         volume_up_btn.id = 8
         volume_down_btn.id = 7
         next_btn.id = 9
-        emergency_btn.id = 10
+        service_btn.id = 10
 
 
 user_id = None
