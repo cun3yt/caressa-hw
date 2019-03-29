@@ -69,3 +69,7 @@ class ApiClient:
     @staticmethod
     def injectable_content_fetch_available_content_fn():
         return []
+
+    @staticmethod
+    def make_service_request():
+        pass

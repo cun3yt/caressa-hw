@@ -4,9 +4,9 @@
 1. Download aiyprojects-2018-08-03.tar extract it to `aiyprojects-2018-08-03.img.xz`.
 1. Start BalenaEtcher, burn `aiyprojects-2018-08-03.img.xz` file to the SD card:
     1. Example location: /Users/cuneyt/Desktop/2_caressa/hardware/hw-package-modification/
-1. Installation of the speaker, ...
+1. To install the speaker driver run the command below:
     1. echo "dtoverlay=googlevoicehat-soundcard" | sudo tee -a /boot/config.txt
-1. check sound etc.
+1. check sound, microphone, connection etc. (there are files on the desktop)
 1. ifconfig to get IP
 1. connect to raspbie remotely
     1. in local: cat ~/.ssh/raspberry_rsa.pub | pbcopy

@@ -4,7 +4,6 @@ import pytz
 from audio_client import AudioClient
 from audio_player import AudioPlayer
 from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, SUBDOMAIN as SERVER_URL
-from phone_service import make_urgency_call
 from logger import get_logger
 from button import button_action
 from datetime import datetime
@@ -157,13 +156,13 @@ def main():
     next_btn = Button(BIG_RED_BTN_ID)
     next_btn.when_pressed = button_action('press.next-button', player.next_command, client)
 
-    emergency_btn = Button(SMALL_RED_BTN_ID)
-    emergency_btn.when_pressed = button_action('press.emergency-button', make_urgency_call, client)
+    service_btn = Button(SMALL_RED_BTN_ID)
+    service_btn.when_pressed = button_action('press.service-button', client.make_service_request, client)
 
     Thread(target=setup_realtime_update).start()
     Gtk.main()
 
-    return volume_up_btn, volume_down_btn, next_btn, emergency_btn
+    return volume_up_btn, volume_down_btn, next_btn, service_btn
 
 
 if __name__ == '__main__':
