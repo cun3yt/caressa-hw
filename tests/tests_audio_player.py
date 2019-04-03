@@ -62,7 +62,8 @@ class TestAudioPlayer(unittest.TestCase):
         self.assertEqual(self.audio_player.state_stack.count, 0)
 
     def test_button_press_what_next_with_voice_mail(self):
-        self.audio_player.voice_mail_player.add_content({'url': 'https://example.com/voice-mail-1.mp3'})
+        self.audio_player.voice_mail_player.add_content({'url': 'https://example.com/voice-mail-1.mp3',
+                                                         'hash': 'abcd1234'})
         with self.assertLogs(level='INFO') as context_manager:
             self.audio_player.button_press_what_next()
         self.assertIn('INFO:root:delivering voice-mail', context_manager.output)
@@ -87,7 +88,7 @@ class TestAudioPlayer(unittest.TestCase):
     @patch('audio_player.AudioPlayer.set_volume_minimum')
     @patch('audio_player.AudioPlayer.notify')
     def test_urgent_mail_arrived_during_main_stop(self, mock_notify, mock_set_vol_min):
-        self.audio_player.urgent_mail_arrived('https://example.com/urgent-mail-1.mp3')
+        self.audio_player.urgent_mail_arrived('https://example.com/urgent-mail-1.mp3', 'abcd1234')
         self.assertEqual(self.audio_player.current_player_name, 'urgent-mail')
         self.assertTrue(self.audio_player.player.is_playing())
         self.assertEqual(self.audio_player.state_stack.count, 1)
@@ -101,7 +102,7 @@ class TestAudioPlayer(unittest.TestCase):
         self.assertTrue(self.audio_player.player.is_playing())
         self.assertEqual(self.audio_player.current_player_name, 'main')
 
-        self.audio_player.urgent_mail_arrived('https://example.com/urgent-mail-1.mp3')
+        self.audio_player.urgent_mail_arrived('https://example.com/urgent-mail-1.mp3', 'abcd1234')
 
         self.assertEqual(self.audio_player.current_player_name, 'urgent-mail')
         self.assertTrue(self.audio_player.player.is_playing())
@@ -111,7 +112,7 @@ class TestAudioPlayer(unittest.TestCase):
 
     @patch('audio_player.AudioPlayer.set_volume_minimum')
     def test_urgent_mail_arrived_during_urgent_mail_play(self, mock_set_vol_min):
-        self.audio_player.urgent_mail_arrived('https://example.com/urgent-mail-1.mp3')
+        self.audio_player.urgent_mail_arrived('https://example.com/urgent-mail-1.mp3', 'abcd1234')
 
         self.assertEqual(self.audio_player.current_player_name, 'urgent-mail')
         self.assertTrue(self.audio_player.player.is_playing())
@@ -119,7 +120,7 @@ class TestAudioPlayer(unittest.TestCase):
         self.assertEqual(self.audio_player.state_stack.count, 1)
 
         with patch('audio_player.AudioPlayer.notify') as mock_notify:
-            self.audio_player.urgent_mail_arrived('https://example.com/urgent-mail-2.mp3')
+            self.audio_player.urgent_mail_arrived('https://example.com/urgent-mail-2.mp3', 'jf9sjf3dv')
 
         mock_notify.assert_not_called()
         self.assertTrue(self.audio_player.player.is_playing())
@@ -130,7 +131,7 @@ class TestAudioPlayer(unittest.TestCase):
     def test_voice_mail_arrived(self, mock_notify):
         ap = self.audio_player
         with self.assertLogs(level='INFO') as context_manager:
-            ap.voice_mail_arrived('https://example.com/voice-mail-1.mp3')
+            ap.voice_mail_arrived('https://example.com/voice-mail-1.mp3', 'abcd1234')
         self.assertIn('INFO:root:voice_mail_arrived', context_manager.output)
         self.assertEqual(ap.voice_mail_player.count, 1, "Voicemail counter is increased by 1")
         self.assertEqual(ap.current_player_name, 'main', "Voicemail should not change the current player")
@@ -139,10 +140,10 @@ class TestAudioPlayer(unittest.TestCase):
     @patch('audio_player.AudioPlayer.notify')
     def test_voice_mail_arrived_multiple_times(self, mock_notify):
         ap = self.audio_player
-        ap.voice_mail_arrived('https://example.com/voice-mail-1.mp3')
-        ap.voice_mail_arrived('https://example.com/voice-mail-2.mp3')
-        ap.voice_mail_arrived('https://example.com/voice-mail-3.mp3')
-        ap.voice_mail_arrived('https://example.com/voice-mail-4.mp3')
+        ap.voice_mail_arrived('https://example.com/voice-mail-1.mp3', 'abcd1234')
+        ap.voice_mail_arrived('https://example.com/voice-mail-2.mp3', 'fjdsoi12')
+        ap.voice_mail_arrived('https://example.com/voice-mail-3.mp3', 'rsj923fx')
+        ap.voice_mail_arrived('https://example.com/voice-mail-4.mp3', 'n09k3fdz')
         self.assertEqual(ap.voice_mail_player.count, 4, "Voicemail counter is incremented 4 times")
 
     @patch('tests.mock.mock_alsaaudio.Mixer.getvolume')
@@ -210,15 +211,28 @@ class TestAudioPlayer(unittest.TestCase):
                 mock_play_next.assert_not_called()
                 mock_play_pause.assert_not_called()
 
+    def test_yes_like_button_for_main_content(self):
+        pass
+
     @patch('tests.mock.mock_subprocess.call')
     def test_notify(self, mock_call):
         self.audio_player.notify()
         mock_call.asset_called_with(['aplay', './sounds/notification-doorbell.wav', ])
 
+    @patch('tests.mock.mock_subprocess.call')
+    def test_positive_feedback(self, mock_call):
+        self.audio_player.positive_feedback()
+        mock_call.asset_called_with(['aplay', './sounds/positive-feedback.wav', ])
+
+    @patch('tests.mock.mock_subprocess.call')
+    def test_negative_feedback(self, mock_call):
+        self.audio_player.negative_feedback()
+        mock_call.asset_called_with(['aplay', './sounds/negative-feedback.wav', ])
+
     def test_consuming_all_voice_mails(self):
         ap = self.audio_player
-        ap.voice_mail_arrived('https://example.com/voice-mail-1.mp3')
-        ap.voice_mail_arrived('https://example.com/voice-mail-2.mp3')
+        ap.voice_mail_arrived('https://example.com/voice-mail-1.mp3', 'fjsa9of23')
+        ap.voice_mail_arrived('https://example.com/voice-mail-2.mp3', '33ijferec')
         ap.button_press_what_next()
         self.assertEqual(ap.player.count, 1)
         ap.next_command()

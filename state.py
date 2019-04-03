@@ -11,6 +11,8 @@ class State:
         self.current_player = current_player
         self.playing_state = playing_state
 
+        # todo this needs to keep the audio file or at least the audio file's hash
+
     def __str__(self):
         return "State ({}, {})".format(self.current_player, self.playing_state)
 

@@ -18,6 +18,7 @@ class ApiClient:
                         'audioItem': {
                             'stream': {
                                 'url': 'https://example.com/song1234.mp3',
+                                'hash': 'abcd1234',
                                 'token': 'abcd',
                             }
                         }
@@ -41,6 +42,7 @@ class ApiClient:
                         'audioItem': {
                             'stream': {
                                 'url': 'http://example.com/audio1.mp3',
+                                'hash': 'fdsjo11f3',
                                 'token': '1234',
                             }
                         }

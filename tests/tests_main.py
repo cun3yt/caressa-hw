@@ -2,6 +2,7 @@ import pytz
 import unittest
 from unittest.mock import patch
 from audio_player import AudioPlayer
+from list_player import Audio
 from audio_client import AudioClient
 from tests.mock.mock_api_client import ApiClient
 from main import PusherService, setup_client, setup_realtime_update, connect_handler, setup_user_channels_and_player, main, handle_mail
@@ -58,19 +59,20 @@ class TestMain(unittest.TestCase):
         self.assertIn('INFO:root:subscribe::channel.Y', context_manager.output)
         self.assertIn('INFO:root:subscribe::channel.Z', context_manager.output)
 
-    @patch('audio_player.AudioPlayer._get_first_audio_url')
+    @patch('audio_player.AudioPlayer._get_first_audio')
     @patch('audio_client.AudioClient.injectable_content_download_fn')
     @patch('audio_client.AudioClient.injectable_content_fetch_available_content_fn')
     @patch('audio_client.AudioClient.get_channels')
     @patch('audio_client.AudioClient.get_user_data')
     def test_setup_user_channels_and_player(self, mock_get_user_data, mock_get_channels,
                                             mock_injectable_content_fetch_available_content_fn,
-                                            mock_inj_content_download_fn, mock_get_first_audio_url):
+                                            mock_inj_content_download_fn, mock_get_first_audio):
         mock_get_user_data.return_value = _Response(text='{"pk": 1}')
         mock_get_channels.return_value = _Response(text='{"channels": ["channel.X", "channel.Y"]}')
         mock_injectable_content_fetch_available_content_fn.return_value = []
         mock_inj_content_download_fn.return_value = '[]'
-        mock_get_first_audio_url.return_value = 'https://example.com/audio-1.mp3'
+        mock_get_first_audio.return_value = Audio(url='https://example.com/audio-1.mp3', hash_='abcd1234')
+
         channels, player, user_id, client = setup_user_channels_and_player()
         self.assertEqual(channels, ['channel.X', 'channel.Y'])
         self.assertIsInstance(player, AudioPlayer)
@@ -85,12 +87,12 @@ class TestMain(unittest.TestCase):
 
         mock_setup_user_channels_and_player.return_value = \
             (['channel.X', 'channel.Y'], AudioPlayer(client), 1, client)
-        volume_up_btn, volume_down_btn, next_btn, service_btn = main()
-        mock_setup_realtime_update.assert_called_once_with()    # todo problem here
+        volume_up_btn, volume_down_btn, next_btn, service_btn, yes_liked_btn = main()
         volume_up_btn.id = 8
         volume_down_btn.id = 7
         next_btn.id = 9
         service_btn.id = 10
+        yes_liked_btn.id = 11
 
 
 user_id = None
@@ -133,14 +135,15 @@ class TestHandlingMail(unittest.TestCase):
     @patch('audio_player.AudioPlayer.voice_mail_arrived')
     def test_all_recipients_voice_mail(self, mock_voice_mail_arrived):
         voice_mail_handler = handle_mail(AudioPlayer(ApiClient()), 'voice_mail')
-        voice_mail_handler('{"url": "https://example.com/audio1.mp3"}', dependency_injection_user_id=4)
-        mock_voice_mail_arrived.assert_called_once_with("https://example.com/audio1.mp3")
+        voice_mail_handler('{"url": "https://example.com/audio1.mp3", "hash": "abcd1234"}', dependency_injection_user_id=4)
+        mock_voice_mail_arrived.assert_called_once_with("https://example.com/audio1.mp3", 'abcd1234')
 
     @patch('audio_player.AudioPlayer.urgent_mail_arrived')
     def test_all_recipients_urgent_mail(self, mock_urgent_mail_arrived):
         urgent_mail_handler = handle_mail(AudioPlayer(ApiClient()), 'urgent_mail')
-        urgent_mail_handler('{"url": "https://example.com/audio1.mp3"}', dependency_injection_user_id=5)
-        mock_urgent_mail_arrived.assert_called_once_with("https://example.com/audio1.mp3")
+        urgent_mail_handler('{"url": "https://example.com/audio1.mp3", "hash": "abcd1234"}',
+                            dependency_injection_user_id=5)
+        mock_urgent_mail_arrived.assert_called_once_with("https://example.com/audio1.mp3", "abcd1234")
 
     @patch('audio_player.AudioPlayer.injectable_content_arrived')
     def test_all_recipients_injectable_content(self, mock_injectable_content_arrived):
@@ -171,7 +174,7 @@ class TestHandlingMail(unittest.TestCase):
     @patch('audio_player.AudioPlayer.voice_mail_arrived')
     def test_with_recipients(self, mock_voice_mail_arrived):
         voice_mail_handler = handle_mail(AudioPlayer(ApiClient()), 'voice_mail')
-        voice_mail_handler('{"url": "https://example.com/audio1.mp3", "selected_recipient_ids": [101,102,103], '
+        voice_mail_handler('{"url": "https://example.com/audio1.mp3", "hash": "abcd1234", '
+                           '"selected_recipient_ids": [101,102,103], '
                            '"is_selected_recipient_type": true}', dependency_injection_user_id=101)
-        mock_voice_mail_arrived.assert_called_once_with("https://example.com/audio1.mp3")
-        
+        mock_voice_mail_arrived.assert_called_once_with("https://example.com/audio1.mp3", 'abcd1234')

@@ -16,6 +16,7 @@ LEFT_BLACK_BTN_ID = 7
 RIGHT_BLACK_BTN_ID = 8
 BIG_RED_BTN_ID = 9
 SMALL_RED_BTN_ID = 10
+BIG_GREEN_BTN_ID = 11
 
 logger = get_logger()
 
@@ -51,6 +52,7 @@ def handle_mail(audio_player, msg_type):
 
         data = json.loads(args[0])
         url = data.get('url')
+        hash_ = data.get('hash', data.get('hash_'))
 
         is_selected_recipient_type = data.get('is_selected_recipient_type', False)
         selected_recipient_ids = data.get('selected_recipient_ids', None)
@@ -75,9 +77,9 @@ def handle_mail(audio_player, msg_type):
                 return
 
         if msg_type == 'voice_mail':
-            audio_player.voice_mail_arrived(url)
+            audio_player.voice_mail_arrived(url, hash_)
         elif msg_type == 'urgent_mail':
-            audio_player.urgent_mail_arrived(url)
+            audio_player.urgent_mail_arrived(url, hash_)
         elif msg_type == 'injectable_content':
             start = data.get('start')
             if start:   # supposed to be epoch
@@ -156,13 +158,16 @@ def main():
     next_btn = Button(BIG_RED_BTN_ID)
     next_btn.when_pressed = button_action('press.next-button', player.next_command, client)
 
+    yes_liked_btn = Button(BIG_GREEN_BTN_ID)
+    yes_liked_btn.when_pressed = button_action('press.yes-button', player.yes_command, client)
+
     service_btn = Button(SMALL_RED_BTN_ID)
     service_btn.when_pressed = button_action('press.service-button', client.make_service_request, client)
 
     Thread(target=setup_realtime_update).start()
     Gtk.main()
 
-    return volume_up_btn, volume_down_btn, next_btn, service_btn
+    return volume_up_btn, volume_down_btn, next_btn, service_btn, yes_liked_btn
 
 
 if __name__ == '__main__':

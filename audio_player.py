@@ -4,7 +4,7 @@ from button import button_action
 from logger import get_logger
 from inspect import stack as call_stack
 from state import State, StateStack
-from list_player import ListPlayer
+from list_player import ListPlayer, Audio
 from utils import deep_get
 from injectable_content.models import InjectableContent
 from injectable_content.list import List as InjectableContentList
@@ -20,27 +20,22 @@ _URGENT_MAIL_VOLUME_MIN = 80
 _VOLUME_MAX = 100
 _VOLUME_MIN = 15
 
+STATIC_SOUNDS_DIR = './sounds/{}'
+MESSAGE_NOTIFICATION = STATIC_SOUNDS_DIR.format('notification-doorbell.wav')
+POSITIVE_FEEDBACK = STATIC_SOUNDS_DIR.format('positive-feedback.mp3')
+NEGATIVE_FEEDBACK = STATIC_SOUNDS_DIR.format('negative-feedback.mp3')
 
 logger = get_logger()
 
 
 class AudioPlayer:
-    # todo: consume an API for
-    # todo:     1. unheard voice_mails
-    # todo:     2. urgent_mails that are not delivered in the last X amount of time
+    # todo hit API url for 1. unheard voice_mails, 2. urgent_mails that are not delivered in the last X amount of time
 
     def __init__(self, api_client, **kwargs):
         self.client = api_client
         self.token = None
 
         self._mixer = AlsaMixer(alsa_mixers()[0])
-
-        # processing_indicator related codes are commented out, they are going to be used or killed
-        # when it is decided on visual/sound feedback on processing state
-        # @author Cuneyt Mertayak
-        #
-        # processing_indicator_fn = kwargs.get('processing_indicator_fn', lambda: 0)
-        # processing_off_indicator_fn = kwargs.get('processing_off_indicator', lambda: 0)
 
         (self.main_player, self.voice_mail_player, self.urgent_mail_player, self.players) = \
             self._init_players()
@@ -113,9 +108,9 @@ class AudioPlayer:
 
         logger.info("injectable_content arrived with hash: {}, url: {}".format(hash_, url))
 
-    def urgent_mail_arrived(self, *args, **kwargs):
+    def urgent_mail_arrived(self, url, hash_, *args, **kwargs):
         logger.info("urgent mail arrived")
-        self.urgent_mail_player.add_content({'url': args[0]})
+        self.urgent_mail_player.add_content({'url': url, 'hash': hash_})
 
         if self.player != self.urgent_mail_player:
             self.notify()
@@ -127,10 +122,10 @@ class AudioPlayer:
         self._play()
         return
 
-    def voice_mail_arrived(self, *args, **kwargs):
+    def voice_mail_arrived(self, url, hash_, *args, **kwargs):
         self._set_led_state(voicehat.LED.BLINK)
         logger.info("voice_mail_arrived")
-        self.voice_mail_player.add_content({'url': args[0]})
+        self.voice_mail_player.add_content({'url': url, 'hash': hash_})
         logger.info("voice-mail count: {}".format(self.voice_mail_player.count))
         self.notify()
 
@@ -174,8 +169,38 @@ class AudioPlayer:
                 'result': "fn-call.{}".format(getattr(fn, '__name__', fn))}
 
     @staticmethod
+    def yes_or_like_current_content():
+        # todo implement this
+        def fn():
+            logger.info('yes_or_like_current_content')
+        Thread(target=fn).start()
+        return fn
+
+    def yes_command(self, *args, **kwargs):
+        result = {'command': "yes-command"}
+        logger.info("yes command came... current player: {}".format(self.current_player_name))
+
+        if not self.current_state.playing_state:
+            fn = self.play_pause
+        else:
+            fn = self.yes_or_like_current_content()
+        fn()
+
+        return {**result,
+                'player': self.current_player_name,
+                'result': "fn-call.{}".format(getattr(fn, '__name__', fn))}
+
+    @staticmethod
     def notify():
-        os_call(['aplay', './sounds/notification-doorbell.wav', ])
+        os_call(['aplay', MESSAGE_NOTIFICATION, ])
+
+    @staticmethod
+    def positive_feedback():
+        os_call(['aplay', POSITIVE_FEEDBACK, ])
+
+    @staticmethod
+    def negative_feedback():
+        os_call(['aplay', NEGATIVE_FEEDBACK, ])
 
     def _init_players(self):
         main_player = ListPlayer(next_item_callback=self._content_started)
@@ -188,8 +213,8 @@ class AudioPlayer:
             'urgent-mail': urgent_mail_player,
         }
 
-        url = self._get_first_audio_url()
-        main_player.add_content({'url': url})
+        audio = self._get_first_audio()
+        main_player.add_content(audio)
         return main_player, voice_mail_player, urgent_mail_player, players
 
     def _queue_up(self):
@@ -208,10 +233,7 @@ class AudioPlayer:
         assert(deep_get(directive, 'playBehavior') == 'ENQUEUE')
         stream = deep_get(directive, 'audioItem.stream')
 
-        # todo: Solve this logic problem
-        # assert(stream.get('expectedPreviousToken') == self.token)
-
-        self.main_player.add_content({'url': stream.get('url')})
+        self.main_player.add_content({'url': stream.get('url'), 'hash': stream.get('hash')})
         self.token = stream.get('token')
 
     def _content_started(self, *args, **kwargs):
@@ -219,16 +241,17 @@ class AudioPlayer:
         self.client.send_playback_started_signal(token=self.token)
         Thread(target=self._queue_up).start()
 
-    def _get_first_audio_url(self):
+    def _get_first_audio(self) -> Audio:
         logger.info("{} is called".format(call_stack()[0][3]))
         response = self.client.launch()
         res_body = json.loads(response.text)
         directive = deep_get(res_body, 'response.directives')[0]
         assert (deep_get(directive, 'type') == 'AudioPlayer.Play')
         audio_url = deep_get(directive, 'audioItem.stream.url')
+        audio_hash = deep_get(directive, 'audioItem.stream.hash')
         token = deep_get(directive, 'audioItem.stream.token')
         self.token = token
-        return audio_url
+        return Audio(url=audio_url, hash_=audio_hash)
 
     def _play(self):
         logger.info("{} is called, current_player: {}".format(call_stack()[0][3], self.current_player_name))

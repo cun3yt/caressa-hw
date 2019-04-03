@@ -7,13 +7,21 @@ gi, vlc, Gtk, GLib, Thread = get_list_player_dependencies()
 
 # instance of this class must pause the play, collect the response and send it ...
 class Audio:
-    def __init__(self, url, follow_up_fn=None, *args):
+    def __init__(self, url, hash_, follow_up_fn=None, *args):
+        assert hash_, (
+            "hash cannot be falsify value! Found: {}".format(hash_)
+        )
         self._url = url
+        self._hash = hash_
         self._follow_up = lambda: follow_up_fn(args) if follow_up_fn else None
 
     @property
     def url(self):
         return self._url
+
+    @property
+    def hash(self):
+        return self._hash
 
     @property
     def follow_up_fn(self):
@@ -89,7 +97,7 @@ class ListPlayer:
         Thread(target=_run_garbage_collection_and_upload).start()
 
         # todo there is jingle_url also but not currently playable in list_player
-        return Audio(url=_content.audio_url)
+        return Audio(url=_content.audio_url, hash_=_content.hash_)
 
     def play_next(self):
         self._content_follow_fn = None
@@ -112,11 +120,14 @@ class ListPlayer:
         GLib.idle_add(lambda: self.player.pause())
 
     def add_content(self, content, to_top=False):
-        if isinstance(content, str):
-            content = Audio(url=content)
+        assert isinstance(content, dict) or isinstance(content, Audio), (
+            "content is supposed to be either dict or Audio, found: {}".format(type(content))
+        )
 
         if isinstance(content, dict):
-            content = Audio(url=content.get('url'), follow_up_fn=content.get('follow_up_fn'))
+            hash_ = content.get('hash', content.get('hash_'))
+            content = Audio(url=content.get('url'), hash_=hash_,
+                            follow_up_fn=content.get('follow_up_fn'))
 
         if to_top:
             self.queue.appendleft(content)
