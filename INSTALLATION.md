@@ -15,7 +15,8 @@
     4. paste and exit (ctrl+d)
 1. Add dataplicity connection
     1. curl https://www.dataplicity.com/muw03ius.py | sudo python
-1. Run remote build for the device (IDE)
+1. Run remote build for the device (IDE): 
+    1. remote-build.sh
 1. Install python dependencies:
     1. cd Work/
     2. pip3 install -r requirements/hardware.txt

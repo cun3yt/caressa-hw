@@ -4,18 +4,42 @@ USER='pi'
 REMOTE_DIR='/home/pi/Work'
 ENV_FILE='.envrc'
 ENV_SERVICE_FILE='.envservice'
-FORWARD_PORTS=(9091)    # todo take from command line
+SERVICE_UNIT_FILE='caressa.service'
 
-for port in $FORWARD_PORTS; do
-    echo "RSync'ing to port ${port}"
+if [[ $# -eq 0 ]]; then
+    echo "Port numbers must be given as arguments"
+    echo "Usage: remote-build.sh 9093 9091"
+    exit 1
+fi
+
+FORWARD_PORTS=( "$@" )
+
+for port in ${FORWARD_PORTS}; do
+    echo "########   ######  ##    ## ##    ##  ######"
+    echo "##     ## ##    ##  ##  ##  ###   ## ##    ##"
+    echo "##     ## ##         ####   ####  ## ##"
+    echo "########   ######     ##    ## ## ## ##"
+    echo "##   ##         ##    ##    ##  #### ##"
+    echo "##    ##  ##    ##    ##    ##   ### ##    ##"
+    echo "##     ##  ######     ##    ##    ##  ######"
+    echo ""
+    echo "Port: ${port}"
+    echo ""
+
     rsync -rvz -e "ssh -p ${port}" --delete --exclude-from=.rsyncignore ~/Work/caressa_hw/ "${USER}@${HOST}:${REMOTE_DIR}"
+
+    echo ""
+    echo "Generating Environment Variables for Service Unit: ${ENV_SERVICE_FILE}"
+    echo ""
+
     ssh -p "${port}" "${USER}@${HOST}" "sed 's/^export\ //g' ${REMOTE_DIR}/${ENV_FILE} | sed '/^$/d' > ${REMOTE_DIR}/${ENV_SERVICE_FILE}"
-    ssh -p "${port}" "${USER}@${HOST}" "sudo systemctl restart caressa.service"
+
+    echo ""
+    echo "Restarting Service: ${SERVICE_UNIT_FILE}"
+    echo ""
+    
+    ssh -p "${port}" "${USER}@${HOST}" "sudo systemctl restart ${SERVICE_UNIT_FILE}"
 done
 
+echo ""
 echo "RSync to ${HOST} Done..."
-echo "Running Script"
-
-# Environment file for the service in Raspberry Pi is different than the original environment file `.envrc`,
-# so generating the service env file with the removal of "export " at the beginning of each line of
-# the original environment file:
