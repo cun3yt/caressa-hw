@@ -49,7 +49,7 @@ class TestListPlayer(unittest.TestCase):
     def test_add_dict(self):
         lp = ListPlayer()
 
-        lp.add_content({'content': 'http://example.com/audio_1.mp3',
+        lp.add_content({'url': 'http://example.com/audio_1.mp3',
                         'hash_': 'abcd1234'})
 
         lp.add_content({
@@ -69,7 +69,7 @@ class TestListPlayer(unittest.TestCase):
 
     def test_add_dict_to_top(self):
         lp = ListPlayer()
-        lp.add_content({'content': 'http://example.com/audio_1.mp3',
+        lp.add_content({'url': 'http://example.com/audio_1.mp3',
                         'hash_': 'abcd1234'})
         lp.add_content({
             'url': 'http://example.com/audio_2.mp3',

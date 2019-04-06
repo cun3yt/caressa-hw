@@ -11,7 +11,7 @@
 1. connect to raspbie remotely
     1. in local: cat ~/.ssh/raspberry_rsa.pub | pbcopy
     2. ssh pi@<IP>
-    3. cat >> authorized_keys
+    3. cat >> ~/.ssh/authorized_keys
     4. paste and exit (ctrl+d)
 1. Add dataplicity connection
     1. curl https://www.dataplicity.com/muw03ius.py | sudo python
@@ -21,6 +21,7 @@
     1. cd Work/
     2. pip3 install -r requirements/hardware.txt
 1. sudo apt-get install vlc
+
 1. Setup Config
     1. Create user in admin panel
     2. In DB, set user's password (currently copy/paste from another user!!)
