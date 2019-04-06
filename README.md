@@ -90,7 +90,7 @@ The following environment variables are in use. You can set `.envrc` file with t
 
 * Set `ENV` to `'test'` in .envrc: `export ENV='test'` 
 * Install test requirements: `pip install -r requirements/test.txt`
-* `coverage run -m unittest discover tests/ > /tmp/null`
+* `coverage run -m unittest discover tests/`
 * `coverage report`
 
 ## Patch for Fixing AIY Project

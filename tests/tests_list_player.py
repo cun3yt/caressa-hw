@@ -84,21 +84,36 @@ class TestListPlayer(unittest.TestCase):
 
     def test_play_at_beginning(self):
         lp = ListPlayer()
-        lp.add_content({'content': 'http://example.com/audio_1.mp3', 'hash_': 'abcd1234'})
-        lp.add_content({'content': 'http://example.com/audio_2.mp3', 'hash_': 'kdasjfoj'})
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash_': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash_': 'kdasjfoj'})
 
         self.assertFalse(lp.is_playing())
         lp.play()
         self.assertTrue(lp.is_playing())
         self.assertEqual(lp.count, 1)
 
+    def test_check_upcoming_content(self):
+        lp = ListPlayer()
+
+        content = lp.check_upcoming_content()
+        self.assertIsNone(content)
+
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash_': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash_': 'kdasjfoj'})
+
+        content = lp.check_upcoming_content()
+        self.assertIsInstance(content, Audio)
+        self.assertEqual(content.url, 'http://example.com/audio_1.mp3')
+        self.assertEqual(content.hash, 'abcd1234')
+
+
     def test_play_next_at_beginning(self):
         def _next_item_callback():
             raise ValueError
 
         lp = ListPlayer(next_item_callback=_next_item_callback)
-        lp.add_content({'content': 'http://example.com/audio_1.mp3', 'hash_': 'abcd1234'})
-        lp.add_content({'content': 'http://example.com/audio_2.mp3', 'hash_': 'kljfdsjio23'})
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash_': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash_': 'kljfdsjio23'})
 
         self.assertFalse(lp.is_playing())
         self.assertRaises(ValueError, lp.play_next)
@@ -108,8 +123,8 @@ class TestListPlayer(unittest.TestCase):
     @patch('injectable_content.list.List.fetch_from_api')
     def test_play_with_injectable_content_at_beginning(self, mock_fetch_from_api, mock_download):
         lp = ListPlayer()
-        lp.add_content({'content': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
-        lp.add_content({'content': 'http://example.com/audio_2.mp3', 'hash': 'jf9eo63f'})
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash': 'jf9eo63f'})
 
         self.now = datetime.now(pytz.utc)
         self.one_day = timedelta(days=1)
@@ -174,10 +189,10 @@ class TestListPlayer(unittest.TestCase):
         self.assertFalse(lp.is_playing())
         lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
         lp.play()
-        lp.player.stop()
+        lp.vlc_player.stop()
         if lp._content_follow_fn:   # need to consume follow up function
             lp.play()
-            lp.player.stop()
+            lp.vlc_player.stop()
         self.assertRaises(ValueError, lp.play)
 
     def test_list_finished_callback_no_next(self):

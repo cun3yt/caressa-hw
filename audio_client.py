@@ -6,17 +6,6 @@ from logger import get_logger
 logger = get_logger()
 
 
-request_types = [
-    'LaunchRequest',
-    'PlaybackController.PlayCommandIssued',
-    'SessionEndedRequest',
-    'PlaybackController.NextCommandIssued',
-    'AudioPlayer.PlaybackNearlyFinished',
-    'AudioPlayer.PlaybackStarted',
-    'PlaybackController.PauseCommandIssued',
-]
-
-
 class AudioClient:
     def __init__(self, url, **kwargs):
         self._url = url
@@ -26,6 +15,7 @@ class AudioClient:
         self.injectable_content_sync_url = '{}/api/users/me/user-content-repository/'.format(url)
         self.injectable_content_api_url = '{}/api/users/me/contents/'.format(url)
         self.service_request_url = '{}/api/users/me/service-requests/'.format(url)
+        self.content_signal_url = '{}/api/audio-files/me/signal/'.format(url)
         self.user_id = kwargs.get('user_id')
         self.user_password = kwargs.get('user_password', '')
         self.client_id = kwargs.get('client_id')
@@ -45,6 +35,10 @@ class AudioClient:
 
     def make_service_request(self):
         return self._common_request(self.service_request_url, 'POST')
+
+    def post_content_signal(self, hash_, signal='positive'):
+        body = {'hash': hash_, 'signal': signal}
+        return self._common_request(self.content_signal_url, method='POST', body=body)
 
     def post_button_action(self, url, method='POST', **kwargs):
         self._common_request(url, method, **kwargs)

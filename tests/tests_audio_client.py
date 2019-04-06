@@ -66,6 +66,13 @@ class TestAudioClient(unittest.TestCase):
         self.client.make_service_request()
         mock_common_request.assert_called_once_with('https://example.com/api/users/me/service-requests/', 'POST')
 
+    @patch('audio_client.AudioClient._common_request')
+    def test_post_content_signal(self, mock_common_request):
+        self.client.post_content_signal(hash_='abcde12345', signal='negative')
+        mock_common_request.assert_called_once_with('https://example.com/api/audio-files/me/signal/',
+                                                    method='POST',
+                                                    body={'hash': 'abcde12345', 'signal': 'negative'})
+
     @responses.activate
     @patch('audio_client.AudioClient._authenticate')
     def test_get_channels_no_access_token(self, mock_authenticate):

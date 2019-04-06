@@ -7,6 +7,9 @@ class Response:
 
 
 class ApiClient:
+    def __init__(self, *args, **kwargs):
+        pass
+
     @staticmethod
     def send_playback_nearly_finished_signal():
         d = {
@@ -58,6 +61,10 @@ class ApiClient:
 
     @staticmethod
     def post_button_action(url, method='POST', **kwargs):
+        pass
+
+    @staticmethod
+    def post_content_signal(hash_, signal):
         pass
 
     @staticmethod

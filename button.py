@@ -1,5 +1,17 @@
 from settings import USER_ACTIVITY_LOG
 
+from logger import get_logger
+
+from conditional_imports import get_button_dependencies
+
+Thread = get_button_dependencies()
+
+logger = get_logger()
+
+
+def _post_user_action(client, user_activity_log_url, data: dict):   # pragma: no cover
+    client.post_button_action(user_activity_log_url, method='POST', body=data)
+
 
 def button_action(user_action, callback_fn, client, user_activity_log_url=USER_ACTIVITY_LOG):
     """
@@ -11,10 +23,17 @@ def button_action(user_action, callback_fn, client, user_activity_log_url=USER_A
     :param user_activity_log_url: End point for logging
     :return:
     """
-    
-    def _action():
-        result = callback_fn()    # json
-        client.post_button_action(user_activity_log_url, method='POST',
-                                  body={'activity': user_action, 'data': result})
 
-    return _action
+    def action():
+        try:
+            result = callback_fn()    # json
+        except Exception as ex:
+            error_message = "Unexpected Error: {}".format(ex)
+            logger.error(error_message)
+            data = {'activity': user_action, 'error': error_message}
+            Thread(target=_post_user_action, args=(client, user_activity_log_url, data, )).start()
+        else:
+            data = {'activity': user_action, 'data': result}
+            Thread(target=_post_user_action, args=(client, user_activity_log_url, data, )).start()
+
+    return action

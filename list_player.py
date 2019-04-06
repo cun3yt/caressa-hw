@@ -1,6 +1,8 @@
 from collections import deque
 from conditional_imports import get_list_player_dependencies
-from typing import Optional
+from typing import Optional, Union
+from copy import deepcopy
+from signals import ListPlayerConsumedSignal
 
 gi, vlc, Gtk, GLib, Thread = get_list_player_dependencies()
 
@@ -27,6 +29,9 @@ class Audio:
     def follow_up_fn(self):
         return self._follow_up
 
+    def __str__(self):
+        return "Audio({}, {})".format(self.url, self.hash)
+
 
 # todo There is a need of system notification system (e.g. sounds/visuals): Loading, Updating, ...
 
@@ -34,7 +39,7 @@ class Audio:
 class ListPlayer:
     def __init__(self, *args, **kwargs):
         self.queue = deque()
-        self.player = vlc.MediaPlayer()
+        self.vlc_player = vlc.MediaPlayer()
 
         self._injectable_content_list = None     # type: Optional['injectable_content.list.List']
 
@@ -53,28 +58,28 @@ class ListPlayer:
         """
         self._injectable_content_list = injectable_content_list
         self._injectable_content_list.download()
-        self._injectable_content_list.fetch_from_api()  # todo Not tested yet
+        self._injectable_content_list.fetch_from_api()
 
     def play(self, *args):
-        if self.player.is_playing():
-            return
+        if self.vlc_player.is_playing():
+            return None
 
-        if self.player.get_state() == vlc.State.Paused:
-            self.player.play()
-            return
+        if self.vlc_player.get_state() == vlc.State.Paused:
+            self.vlc_player.play()
+            return None
 
         if self._content_follow_fn:     # todo: audit if this is the right place for this callback?
             fn, self._content_follow_fn = self._content_follow_fn, None
             self.pause()
             fn()
             self.play()
-            return
+            return None
 
         if self.count < 1:
             self._list_finished_callback()
-            return
+            return None
 
-        self.play_next()
+        return self.play_next()
 
     def _fetch_injectable_content(self):
         """
@@ -99,25 +104,36 @@ class ListPlayer:
         # todo there is jingle_url also but not currently playable in list_player
         return Audio(url=_content.audio_url, hash_=_content.hash_)
 
-    def play_next(self):
+    def check_upcoming_content(self):
+        if self.count < 1:
+            return None
+        return deepcopy(self.queue[0])
+
+    def play_next(self) -> Union['Audio', 'type']:
         self._content_follow_fn = None
 
         content = self._fetch_injectable_content()
 
-        # todo: What to do if the queue is empty??
-        content = content if content else self.queue.popleft()  # type: Audio
+        try:
+            content = content if content else self.queue.popleft()  # type: Audio
+        except IndexError:
+            # There is no content to play in the queue
+            return ListPlayerConsumedSignal
 
         self._content_follow_fn = content.follow_up_fn
 
         def _play():
-            self.player.set_mrl(mrl=content.url)
-            self.player.play()
+            # todo this is the place to update the state!
+            self.vlc_player.set_mrl(mrl=content.url)
+            # content.hash
+            self.vlc_player.play()
             self._next_item_callback()
 
         GLib.idle_add(lambda: _play())
+        return content
 
     def pause(self):
-        GLib.idle_add(lambda: self.player.pause())
+        GLib.idle_add(lambda: self.vlc_player.pause())
 
     def add_content(self, content, to_top=False):
         assert isinstance(content, dict) or isinstance(content, Audio), (
@@ -135,7 +151,7 @@ class ListPlayer:
             self.queue.append(content)
 
     def is_playing(self):
-        return self.player.is_playing()
+        return self.vlc_player.is_playing()
 
     @property
     def count(self) -> int:
@@ -145,7 +161,7 @@ class ListPlayer:
         self.queue.clear()
 
     def _bind_default_events(self):
-        em = self.player.event_manager()
+        em = self.vlc_player.event_manager()
         em.event_attach(vlc.EventType.MediaPlayerEndReached, self.play)
 
     def __str__(self):
@@ -160,6 +176,7 @@ if __name__ == '__main__':
 
     lp.add_content(
         content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-1.mp3',
+                      hash_='sample-hash',
                       follow_up_fn=_internal))
     lp.play()
     Gtk.main()
