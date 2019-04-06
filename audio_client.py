@@ -34,7 +34,9 @@ class AudioClient:
         return self._common_request(self.channel_url)
 
     def make_service_request(self):
-        return self._common_request(self.service_request_url, 'POST')
+        response = self._common_request(self.service_request_url, 'POST')
+        return {'command': "service-request",
+                'result': "status-code.{}".format(response.status_code)}
 
     def post_content_signal(self, hash_, signal='positive'):
         body = {'hash': hash_, 'signal': signal}
