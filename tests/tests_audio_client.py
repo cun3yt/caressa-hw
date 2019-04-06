@@ -61,10 +61,10 @@ class TestAudioClient(unittest.TestCase):
         self.client.post_button_action('https://example.com/button-actions/', 'POST')
         mock_common_request.assert_called_once_with('https://example.com/button-actions/', 'POST')
 
-    @patch('audio_client.AudioClient._common_request')
-    def test_make_service_request(self, mock_common_request):
-        self.client.make_service_request()
-        mock_common_request.assert_called_once_with('https://example.com/api/users/me/service-requests/', 'POST')
+    # @patch('audio_client.AudioClient._common_request')
+    # def test_make_service_request(self, mock_common_request):
+    #     self.client.make_service_request()
+    #     mock_common_request.assert_called_once_with('https://example.com/api/users/me/service-requests/', 'POST')
 
     @patch('audio_client.AudioClient._common_request')
     def test_post_content_signal(self, mock_common_request):

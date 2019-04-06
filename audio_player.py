@@ -8,7 +8,6 @@ from list_player import ListPlayer, Audio
 from utils import deep_get
 from injectable_content.models import InjectableContent
 from injectable_content.list import List as InjectableContentList
-from typing import Optional
 from signals import ListPlayerConsumedSignal
 
 from conditional_imports import get_audio_player_dependencies
@@ -26,6 +25,7 @@ STATIC_SOUNDS_DIR = './sounds/{}'
 MESSAGE_NOTIFICATION = STATIC_SOUNDS_DIR.format('message-notification.wav')
 POSITIVE_FEEDBACK = STATIC_SOUNDS_DIR.format('positive-feedback.wav')
 NEGATIVE_FEEDBACK = STATIC_SOUNDS_DIR.format('negative-feedback.wav')
+
 
 logger = get_logger()
 

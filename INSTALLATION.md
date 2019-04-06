@@ -24,10 +24,10 @@
 
 1. Setup Config
     1. Create user in admin panel
-    2. In DB, set user's password (currently copy/paste from another user!!)
-    3. set senior_device.userId to the user
-    4. cp config.template.json config.json
-    5. edit config.json, setting api, user credentials, ...
+    1. In DB, set user's password (currently copy/paste from another user!!)
+    1. set senior_device.userId to the user
+    1. cp config.template.json config.json
+    1. edit config.json, setting api, user credentials, ...
 1. Check if main.py works fine:
     1. make sure ENV like is set to 'prod' in .envrc:
         1. `ENV='prod'`
@@ -35,5 +35,12 @@
     1. `python3 ~/Work/main.py`
 1. Setup caressa service:
     1. sudo ln -s /home/pi/Work/caressa.service /etc/systemd/system/caressa.service
-    2. sudo systemctl restart caressa.service (OR sudo systemctl reload-or-restart caressa)
-    3. systemctl status caressa
+    1. sudo systemctl enable caressa.service (OR sudo systemctl reload-or-restart caressa)
+    1. sudo systemctl restart caressa.service (OR sudo systemctl reload-or-restart caressa)
+    1. systemctl status caressa
+   
+
+## Troubleshooting
+
+* Warning **: Error retrieving accessibility bus address:
+    sudo apt-get install at-spi2-core
