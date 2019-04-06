@@ -6,17 +6,6 @@ from logger import get_logger
 logger = get_logger()
 
 
-request_types = [
-    'LaunchRequest',
-    'PlaybackController.PlayCommandIssued',
-    'SessionEndedRequest',
-    'PlaybackController.NextCommandIssued',
-    'AudioPlayer.PlaybackNearlyFinished',
-    'AudioPlayer.PlaybackStarted',
-    'PlaybackController.PauseCommandIssued',
-]
-
-
 class AudioClient:
     def __init__(self, url, **kwargs):
         self._url = url
@@ -26,6 +15,7 @@ class AudioClient:
         self.injectable_content_sync_url = '{}/api/users/me/user-content-repository/'.format(url)
         self.injectable_content_api_url = '{}/api/users/me/contents/'.format(url)
         self.service_request_url = '{}/api/users/me/service-requests/'.format(url)
+        self.content_signal_url = '{}/api/audio-files/me/signal/'.format(url)
         self.user_id = kwargs.get('user_id')
         self.user_password = kwargs.get('user_password', '')
         self.client_id = kwargs.get('client_id')
@@ -44,7 +34,20 @@ class AudioClient:
         return self._common_request(self.channel_url)
 
     def make_service_request(self):
-        return self._common_request(self.service_request_url, 'POST')
+        from audio_player import STATIC_SOUNDS_DIR
+        from subprocess import call as os_call
+
+        response = self._common_request(self.service_request_url, 'POST')
+
+        SERVICE_REQUEST_FEEDBACK = STATIC_SOUNDS_DIR.format('service-request-made.wav')
+        os_call(['aplay', SERVICE_REQUEST_FEEDBACK, ])
+
+        return {'command': "service-request",
+                'result': "status-code.{}".format(response.status_code)}
+
+    def post_content_signal(self, hash_, signal='positive'):
+        body = {'hash': hash_, 'signal': signal}
+        return self._common_request(self.content_signal_url, method='POST', body=body)
 
     def post_button_action(self, url, method='POST', **kwargs):
         self._common_request(url, method, **kwargs)

@@ -1,12 +1,23 @@
 import unittest
 from state import State, StateStack
+from list_player import Audio
 
 
 class TestState(unittest.TestCase):
-    def test_state_init(self):
+    def test_state_no_audio(self):
         inst = State(current_player='player1', playing_state=True)
         self.assertEqual(inst.current_player, 'player1')
         self.assertTrue(inst.playing_state)
+        self.assertEqual(inst.audio_url, None)
+        self.assertEqual(inst.audio_hash, None)
+
+    def test_state_with_audio(self):
+        inst = State(current_player='player1', playing_state=True,
+                     audio=Audio(url='http://example.com/audio1.mp3', hash_='abcd1234'))
+        self.assertEqual(inst.current_player, 'player1')
+        self.assertTrue(inst.playing_state)
+        self.assertEqual(inst.audio_url, 'http://example.com/audio1.mp3')
+        self.assertEqual(inst.audio_hash, 'abcd1234')
 
     def test_default_playing_state(self):
         inst = State(current_player='player1')
@@ -14,7 +25,13 @@ class TestState(unittest.TestCase):
 
     def test_str(self):
         inst = State(current_player='player1', playing_state=False)
-        self.assertEqual(str(inst), "State (player1, False)")
+        self.assertEqual(str(inst), "State (player1, False, None)")
+
+    def test_with_audio_str(self):
+        inst = State(current_player='player1', playing_state=False,
+                     audio=Audio(url='http://example.com/a1.mp3', hash_='abcd1234'))
+        self.assertEqual(str(inst), "State (player1, False, "
+                                    "Audio(http://example.com/a1.mp3, abcd1234))")
 
 
 class TestStateStack(unittest.TestCase):

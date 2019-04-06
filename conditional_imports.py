@@ -20,6 +20,15 @@ def get_list_player_dependencies():
     return gi, vlc, Gtk, GLib, Thread
 
 
+def get_button_dependencies():
+    if ENV != 'test':
+        from threading import Thread
+        return Thread
+
+    from tests.mock.mock_threading import Thread
+    return Thread
+
+
 def get_audio_player_dependencies():
     if ENV != 'test':
         from subprocess import call as os_call

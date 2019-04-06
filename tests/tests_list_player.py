@@ -10,8 +10,9 @@ from unittest.mock import patch
 
 class TestAudio(unittest.TestCase):
     def test_audio_set(self):
-        audio = Audio(url='http://example.com/audio.mp3')
+        audio = Audio(url='http://example.com/audio.mp3', hash_='abcd1234')
         self.assertEqual(audio.url, 'http://example.com/audio.mp3')
+        self.assertEqual(audio.hash, 'abcd1234')
         fn = audio.follow_up_fn
         self.assertIsNone(fn())
 
@@ -19,7 +20,7 @@ class TestAudio(unittest.TestCase):
         def _fn(*args):
             return "_fn is called with {}".format(', '.join(*args))
 
-        audio = Audio('http://example.com/audio.mp3', _fn, 'one', 'two')
+        audio = Audio('http://example.com/audio.mp3', 'abcd1234', _fn, 'one', 'two')
         fn = audio.follow_up_fn
         self.assertEqual(fn(), "_fn is called with one, two")
 
@@ -27,60 +28,92 @@ class TestAudio(unittest.TestCase):
 class TestListPlayer(unittest.TestCase):
     def test_add_url(self):
         lp = ListPlayer()
-        lp.add_content(content='http://example.com/audio_1.mp3')
-        lp.add_content(content='http://example.com/audio_2.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3',
+                        'hash': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3',
+                        'hash': 'jf9dwjef'})
         self.assertEqual(lp.count, 2)
 
         audio = lp.queue.popleft()
         self.assertEqual(audio.url, 'http://example.com/audio_1.mp3')
+        self.assertEqual(audio.hash, 'abcd1234')
 
-        lp.add_content(content='http://example.com/audio_3.mp3', to_top=True)
+        lp.add_content(content={'url': 'http://example.com/audio_3.mp3',
+                                'hash': 'kjfsi93j'},
+                       to_top=True)
 
         audio = lp.queue.popleft()
         self.assertEqual(audio.url, 'http://example.com/audio_3.mp3')
+        self.assertEqual(audio.hash, 'kjfsi93j')
 
     def test_add_dict(self):
         lp = ListPlayer()
 
-        lp.add_content(content='http://example.com/audio_1.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3',
+                        'hash_': 'abcd1234'})
 
         lp.add_content({
             'url': 'http://example.com/audio_2.mp3',
+            'hash_': 'fjsoi23fds',
             'fn': lambda: 'Hello'
         })
 
         audio = lp.queue.pop()
         self.assertEqual(audio.url, 'http://example.com/audio_2.mp3')
+        self.assertEqual(audio.hash, 'fjsoi23fds')
+
+    def test_assert_string_content(self):
+        lp = ListPlayer()
+        with self.assertRaises(AssertionError):
+            lp.add_content(content='http://example.com/audio.mp3')
 
     def test_add_dict_to_top(self):
         lp = ListPlayer()
-        lp.add_content(content='http://example.com/audio_1.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3',
+                        'hash_': 'abcd1234'})
         lp.add_content({
             'url': 'http://example.com/audio_2.mp3',
+            'hash_': 'jfoipsj23',
             'fn': lambda: 'Hello'
         }, to_top=True)
 
         audio = lp.queue.popleft()
         self.assertIsInstance(audio, Audio)
         self.assertEqual(audio.url, 'http://example.com/audio_2.mp3')
+        self.assertEqual(audio.hash, 'jfoipsj23')
 
     def test_play_at_beginning(self):
         lp = ListPlayer()
-        lp.add_content(content='http://example.com/audio_1.mp3')
-        lp.add_content(content='http://example.com/audio_2.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash_': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash_': 'kdasjfoj'})
 
         self.assertFalse(lp.is_playing())
         lp.play()
         self.assertTrue(lp.is_playing())
         self.assertEqual(lp.count, 1)
 
+    def test_check_upcoming_content(self):
+        lp = ListPlayer()
+
+        content = lp.check_upcoming_content()
+        self.assertIsNone(content)
+
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash_': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash_': 'kdasjfoj'})
+
+        content = lp.check_upcoming_content()
+        self.assertIsInstance(content, Audio)
+        self.assertEqual(content.url, 'http://example.com/audio_1.mp3')
+        self.assertEqual(content.hash, 'abcd1234')
+
+
     def test_play_next_at_beginning(self):
         def _next_item_callback():
             raise ValueError
 
         lp = ListPlayer(next_item_callback=_next_item_callback)
-        lp.add_content(content='http://example.com/audio_1.mp3')
-        lp.add_content(content='http://example.com/audio_2.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash_': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash_': 'kljfdsjio23'})
 
         self.assertFalse(lp.is_playing())
         self.assertRaises(ValueError, lp.play_next)
@@ -90,8 +123,8 @@ class TestListPlayer(unittest.TestCase):
     @patch('injectable_content.list.List.fetch_from_api')
     def test_play_with_injectable_content_at_beginning(self, mock_fetch_from_api, mock_download):
         lp = ListPlayer()
-        lp.add_content(content='http://example.com/audio_1.mp3')
-        lp.add_content(content='http://example.com/audio_2.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash': 'jf9eo63f'})
 
         self.now = datetime.now(pytz.utc)
         self.one_day = timedelta(days=1)
@@ -115,8 +148,8 @@ class TestListPlayer(unittest.TestCase):
     @patch('injectable_content.list.List.fetch_from_api')
     def test_play_with_injectable_content_upcoming_at_beginning(self, mock_fetch_from_api, mock_download):
         lp = ListPlayer()
-        lp.add_content(content='http://example.com/audio_1.mp3')
-        lp.add_content(content='http://example.com/audio_2.mp3')
+        lp.add_content(content={'url': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
+        lp.add_content(content={'url': 'http://example.com/audio_2.mp3', 'hash': 'fdsjkn12'})
 
         self.now = datetime.now(pytz.utc)
         self.one_day = timedelta(days=1)
@@ -135,8 +168,8 @@ class TestListPlayer(unittest.TestCase):
 
     def test_pause(self):
         lp = ListPlayer()
-        lp.add_content(content='http://example.com/audio_1.mp3')
-        lp.add_content(content='http://example.com/audio_2.mp3')
+        lp.add_content(content={'url': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
+        lp.add_content(content={'url': 'http://example.com/audio_2.mp3', 'hash': 'abcd1234'})
 
         self.assertFalse(lp.is_playing())
         lp.play()
@@ -154,12 +187,12 @@ class TestListPlayer(unittest.TestCase):
         lp = ListPlayer(list_finished_callback=_list_finished_callback)
         self.assertRaises(ValueError, lp.play)
         self.assertFalse(lp.is_playing())
-        lp.add_content('http://example.com/audio_1.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
         lp.play()
-        lp.player.stop()
+        lp.vlc_player.stop()
         if lp._content_follow_fn:   # need to consume follow up function
             lp.play()
-            lp.player.stop()
+            lp.vlc_player.stop()
         self.assertRaises(ValueError, lp.play)
 
     def test_list_finished_callback_no_next(self):
@@ -185,8 +218,8 @@ class TestListPlayer(unittest.TestCase):
 
     def test_list_repeated_play(self):
         lp = ListPlayer()
-        lp.add_content('http://example.com/audio_1.mp3')
-        lp.add_content('http://example.com/audio_2.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash': 'fjsdo23j'})
         lp.play()
         self.assertEqual(lp.count, 1)
         self.assertTrue(lp.is_playing())
@@ -196,19 +229,19 @@ class TestListPlayer(unittest.TestCase):
 
     def test_clear_playlist(self):
         lp = ListPlayer()
-        lp.add_content('http://example.com/audio_1.mp3')
-        lp.add_content('http://example.com/audio_2.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash': 'fjsdo23j'})
         lp.clean_playlist()
         self.assertEqual(lp.count, 0)
 
-        lp.add_content('http://example.com/audio_1.mp3')
-        lp.add_content('http://example.com/audio_2.mp3')
-        lp.add_content('http://example.com/audio_3.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
+        lp.add_content({'url': 'http://example.com/audio_2.mp3', 'hash': 'fdskji2e'})
+        lp.add_content({'url': 'http://example.com/audio_3.mp3', 'hash': 'i09ikwn3'})
         lp.play()
         lp.clean_playlist()
         self.assertEqual(lp.count, 0)
 
     def test_str(self):
         lp = ListPlayer()
-        lp.add_content('http://example.com/audio_1.mp3')
+        lp.add_content({'url': 'http://example.com/audio_1.mp3', 'hash': 'abcd1234'})
         self.assertEqual(str(lp), "List Player with 1 element(s)")

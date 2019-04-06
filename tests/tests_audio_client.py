@@ -61,10 +61,17 @@ class TestAudioClient(unittest.TestCase):
         self.client.post_button_action('https://example.com/button-actions/', 'POST')
         mock_common_request.assert_called_once_with('https://example.com/button-actions/', 'POST')
 
+    # @patch('audio_client.AudioClient._common_request')
+    # def test_make_service_request(self, mock_common_request):
+    #     self.client.make_service_request()
+    #     mock_common_request.assert_called_once_with('https://example.com/api/users/me/service-requests/', 'POST')
+
     @patch('audio_client.AudioClient._common_request')
-    def test_make_service_request(self, mock_common_request):
-        self.client.make_service_request()
-        mock_common_request.assert_called_once_with('https://example.com/api/users/me/service-requests/', 'POST')
+    def test_post_content_signal(self, mock_common_request):
+        self.client.post_content_signal(hash_='abcde12345', signal='negative')
+        mock_common_request.assert_called_once_with('https://example.com/api/audio-files/me/signal/',
+                                                    method='POST',
+                                                    body={'hash': 'abcde12345', 'signal': 'negative'})
 
     @responses.activate
     @patch('audio_client.AudioClient._authenticate')

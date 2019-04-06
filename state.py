@@ -1,18 +1,33 @@
 from collections import deque
 from copy import deepcopy
 from logger import get_logger
+from list_player import Audio
 
 
 logger = get_logger()
 
 
 class State:
-    def __init__(self, current_player, playing_state=False):
+    def __init__(self, current_player, audio: Audio = None, playing_state=False):
         self.current_player = current_player
         self.playing_state = playing_state
+        self._audio = audio
+
+    @property
+    def audio_url(self):
+        return self._audio.url if self._audio else None
+
+    @property
+    def audio_hash(self):
+        return self._audio.hash if self._audio else None
 
     def __str__(self):
-        return "State ({}, {})".format(self.current_player, self.playing_state)
+        return "State ({player}, {state}, {audio})".format(player=self.current_player,
+                                                           state=self.playing_state,
+                                                           audio=self._audio, )
+
+    def set_audio(self, audio: Audio):
+        self._audio = audio
 
 
 class StateStack:

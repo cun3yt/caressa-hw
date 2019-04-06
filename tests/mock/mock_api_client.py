@@ -7,6 +7,9 @@ class Response:
 
 
 class ApiClient:
+    def __init__(self, *args, **kwargs):
+        pass
+
     @staticmethod
     def send_playback_nearly_finished_signal():
         d = {
@@ -18,6 +21,7 @@ class ApiClient:
                         'audioItem': {
                             'stream': {
                                 'url': 'https://example.com/song1234.mp3',
+                                'hash': 'abcd1234',
                                 'token': 'abcd',
                             }
                         }
@@ -41,6 +45,7 @@ class ApiClient:
                         'audioItem': {
                             'stream': {
                                 'url': 'http://example.com/audio1.mp3',
+                                'hash': 'fdsjo11f3',
                                 'token': '1234',
                             }
                         }
@@ -56,6 +61,10 @@ class ApiClient:
 
     @staticmethod
     def post_button_action(url, method='POST', **kwargs):
+        pass
+
+    @staticmethod
+    def post_content_signal(hash_, signal):
         pass
 
     @staticmethod
