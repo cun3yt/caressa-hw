@@ -31,7 +31,8 @@
 1. Check if main.py works fine:
     1. make sure ENV like is set to 'prod' in .envrc:
         1. `ENV='prod'`
-    1. `python3 ./main.py`
+    1. `source ~/Work/.envrc`
+    1. `python3 ~/Work/main.py`
 1. Setup caressa service:
     1. sudo ln -s /home/pi/Work/caressa.service /etc/systemd/system/caressa.service
     2. sudo systemctl restart caressa.service (OR sudo systemctl reload-or-restart caressa)

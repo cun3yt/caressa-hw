@@ -304,17 +304,17 @@ class TestNotifications(unittest.TestCase):
     @patch('audio_player.os_call')
     def test_notify(self, mock_call):
         self.audio_player.notify()
-        mock_call.assert_called_once_with(['aplay', './sounds/message-notification.mp3', ])
+        mock_call.assert_called_once_with(['aplay', './sounds/message-notification.wav', ])
 
     @patch('audio_player.os_call')
     def test_positive_feedback(self, mock_call):
         self.audio_player.positive_feedback()
-        mock_call.assert_called_once_with(['aplay', './sounds/positive-feedback.mp3', ])
+        mock_call.assert_called_once_with(['aplay', './sounds/positive-feedback.wav', ])
 
     @patch('audio_player.os_call')
     def test_negative_feedback(self, mock_call):
         self.audio_player.negative_feedback()
-        mock_call.assert_called_once_with(['aplay', './sounds/negative-feedback.mp3', ])
+        mock_call.assert_called_once_with(['aplay', './sounds/negative-feedback.wav', ])
 
     def test_consuming_all_voice_mails(self):
         ap = self.audio_player

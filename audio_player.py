@@ -23,9 +23,9 @@ _VOLUME_MAX = 100
 _VOLUME_MIN = 15
 
 STATIC_SOUNDS_DIR = './sounds/{}'
-MESSAGE_NOTIFICATION = STATIC_SOUNDS_DIR.format('message-notification.mp3')
-POSITIVE_FEEDBACK = STATIC_SOUNDS_DIR.format('positive-feedback.mp3')
-NEGATIVE_FEEDBACK = STATIC_SOUNDS_DIR.format('negative-feedback.mp3')
+MESSAGE_NOTIFICATION = STATIC_SOUNDS_DIR.format('message-notification.wav')
+POSITIVE_FEEDBACK = STATIC_SOUNDS_DIR.format('positive-feedback.wav')
+NEGATIVE_FEEDBACK = STATIC_SOUNDS_DIR.format('negative-feedback.wav')
 
 logger = get_logger()
 
