@@ -11,16 +11,23 @@
 1. connect to raspbie remotely
     1. in local: cat ~/.ssh/raspberry_rsa.pub | pbcopy
     2. ssh pi@<IP>
+    3. mkdir ~/.ssh/
     3. cat >> ~/.ssh/authorized_keys
     4. paste and exit (ctrl+d)
 1. Add dataplicity connection
     1. curl https://www.dataplicity.com/muw03ius.py | sudo python
+    1. go to dataplicity dashboard give a name to the new device
+    1. install Porthole from dataplicity
+    1. add connecting in Porthole new device (port: 22) to one local port number(ex: 9001)
+    1. keep Porthole open
 1. Run remote build for the device (IDE): 
-    1. remote-build.sh
+    1. remote-build.sh <local-port-number>
 1. Install python dependencies:
     1. cd Work/
     2. pip3 install -r requirements/hardware.txt
-1. sudo apt-get install vlc
+1. Install aptitude packages:
+    1. sudo apt-get install vlc
+    1. sudo apt-get install at-spi2-core
 
 1. Setup Config
     1. Create user in admin panel
@@ -35,12 +42,12 @@
     1. `python3 ~/Work/main.py`
 1. Setup caressa service:
     1. sudo ln -s /home/pi/Work/caressa.service /etc/systemd/system/caressa.service
-    1. sudo systemctl enable caressa.service (OR sudo systemctl reload-or-restart caressa)
+    1. sudo systemctl enable caressa.service
     1. sudo systemctl restart caressa.service (OR sudo systemctl reload-or-restart caressa)
     1. systemctl status caressa
    
 
 ## Troubleshooting
 
-* Warning **: Error retrieving accessibility bus address:
-    sudo apt-get install at-spi2-core
+* If there pip3 install issue of timeout: Disabling ipv6 solves the issue: 
+https://support.purevpn.com/how-to-disable-ipv6-linuxubuntu

@@ -38,6 +38,7 @@ for port in ${FORWARD_PORTS}; do
     echo "Restarting Service: ${SERVICE_UNIT_FILE}"
     echo ""
     
+    ssh -p "${port}" "${USER}@${HOST}" "sudo systemctl daemon-reload"
     ssh -p "${port}" "${USER}@${HOST}" "sudo systemctl restart ${SERVICE_UNIT_FILE}"
 done
 

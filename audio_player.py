@@ -25,6 +25,7 @@ STATIC_SOUNDS_DIR = './sounds/{}'
 MESSAGE_NOTIFICATION = STATIC_SOUNDS_DIR.format('message-notification.wav')
 POSITIVE_FEEDBACK = STATIC_SOUNDS_DIR.format('positive-feedback.wav')
 NEGATIVE_FEEDBACK = STATIC_SOUNDS_DIR.format('negative-feedback.wav')
+SERVICE_REQUEST_FEEDBACK = STATIC_SOUNDS_DIR.format('not-currently-in-use.wav')
 
 
 logger = get_logger()
