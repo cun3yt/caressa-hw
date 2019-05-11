@@ -3,14 +3,15 @@ import pytz
 
 from audio_client import AudioClient
 from audio_player import AudioPlayer
-from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, SUBDOMAIN as SERVER_URL
+from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, \
+    USER_ID, USER_HASH, API_CLIENT_ID,API_CLIENT_SECRET, API_URL
 from logger import get_logger
 from button import button_action
 from datetime import datetime
 
 from conditional_imports import get_main_dependencies
 
-gi, Gtk, GLib, Button, Thread, Pusher, config_filename = get_main_dependencies()
+gi, Gtk, GLib, Button, Thread, Pusher = get_main_dependencies()
 
 LEFT_BLACK_BTN_ID = 7
 RIGHT_BLACK_BTN_ID = 8
@@ -118,14 +119,11 @@ def setup_realtime_update():
 
 
 def setup_client():
-    with open(config_filename) as json_data_file:
-        conf = json.load(json_data_file)
-
-    client = AudioClient(url=SERVER_URL,
-                         user_id=conf['user']['id'],
-                         user_password=conf['user']['hash'],
-                         client_id=conf['api']['client_id'],
-                         client_secret=conf['api']['client_secret'], )
+    client = AudioClient(url=API_URL,
+                         user_id=USER_ID,
+                         user_password=USER_HASH,
+                         client_id=API_CLIENT_ID,
+                         client_secret=API_CLIENT_SECRET)
     return client
 
 

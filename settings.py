@@ -1,21 +1,38 @@
-from os import getenv
+import os
+import json
 
-ENV = getenv('ENV')
+
+ENV = os.getenv('ENV')
 
 possible_envs = ['test', 'dev', 'stage', 'prod', ]
 
-if ENV not in possible_envs:
-    raise Exception("ENV environment variable must be set. "
-                    "Possible values: {}".format(', '.join(possible_envs)))
+assert ENV in possible_envs, (
+    "ENV environment variable must be set. "
+    "Possible values: {}".format(', '.join(possible_envs))
+)
 
-PUSHER_KEY_ID = getenv('PUSHER_KEY_ID')
-PUSHER_SECRET = getenv('PUSHER_SECRET')
-PUSHER_CLUSTER = getenv('PUSHER_CLUSTER')
+config_filename = 'config.{}.json'.format(ENV)
 
-SUBDOMAIN = getenv('WEB_SUBDOMAIN')
+assert os.path.isfile(config_filename), (
+    "The config file is supposed to exists. {} does not exist!".format(config_filename)
+)
 
-USER_ACTIVITY_LOG = "{server}/api/user-activity-log/".format(server=SUBDOMAIN)
+with open(config_filename) as json_file:
+    conf = json.load(json_file)
+
+API_URL = conf['api']['url']
+API_CLIENT_ID = conf['api']['client_id']
+API_CLIENT_SECRET = conf['api']['client_secret']
+
+USER_ID = conf['user']['id']
+USER_HASH = conf['user']['hash']
+
+PUSHER_KEY_ID = conf['pusher']['key_id']
+PUSHER_SECRET = conf['pusher']['secret']
+PUSHER_CLUSTER = conf['pusher']['cluster']
+
+USER_ACTIVITY_LOG = "{api_url}/api/user-activity-log/".format(api_url=API_URL)
 
 DATETIME_TZ_FORMAT = '%Y-%m-%d %H:%M:%S%z'
 # todo: Decide on asserting being non-null existence or full operation of some of the services here.
-# todo Should we unify all time related variables to epoch!
+# todo Should we unify all time related variables to epoch?

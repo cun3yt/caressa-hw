@@ -6,7 +6,7 @@ from list_player import Audio
 from audio_client import AudioClient
 from tests.mock.mock_api_client import ApiClient
 from main import PusherService, setup_client, setup_realtime_update, connect_handler, setup_user_channels_and_player, main, handle_mail
-from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, SUBDOMAIN as SERVER_URL
+from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, API_URL
 from datetime import datetime
 
 
@@ -33,7 +33,7 @@ class TestMain(unittest.TestCase):
 
     def test_setup_client(self):
         client = setup_client()
-        self.assertTrue(client.streaming_url.startswith(SERVER_URL))
+        self.assertTrue(client.streaming_url.startswith(API_URL))
         self.assertEqual(client.user_id, "some-user-id")
         self.assertEqual(client.user_password, "some-hash")
         self.assertEqual(client.client_id, "some-client-id")
@@ -41,7 +41,7 @@ class TestMain(unittest.TestCase):
         self.assertEqual(client.client_secret, "some-client-secret")
         self.assertIsNone(client.access_token)
         self.assertIsNone(client.refresh_token)
-        self.assertTrue(client.channel_url.startswith(SERVER_URL))
+        self.assertTrue(client.channel_url.startswith(API_URL))
 
     def test_setup_realtime_update(self):
         with self.assertLogs(level='INFO') as context_manager:

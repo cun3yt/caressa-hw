@@ -1,6 +1,9 @@
-from requests import request
 import json
+
+from requests import request
 from logger import get_logger
+from audio_player import STATIC_SOUNDS_DIR
+from subprocess import call as os_call
 
 
 logger = get_logger()
@@ -34,9 +37,6 @@ class AudioClient:
         return self._common_request(self.channel_url)
 
     def make_service_request(self):
-        from audio_player import STATIC_SOUNDS_DIR
-        from subprocess import call as os_call
-
         response = self._common_request(self.service_request_url, 'POST')
 
         SERVICE_REQUEST_FEEDBACK = STATIC_SOUNDS_DIR.format('service-request-made.wav')

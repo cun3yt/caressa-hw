@@ -10,7 +10,6 @@ venv/
 
 build.sh
 remote-build.sh
-config.json
 .coverage
 .coveragerc
 

@@ -57,14 +57,18 @@ class TestAudioClient(unittest.TestCase):
         mock_common_request.assert_called_once_with('https://example.com/api/users/me/channels/')
 
     @patch('audio_client.AudioClient._common_request')
-    def test_fetching_channels(self, mock_common_request):
+    def test_post_button_action(self, mock_common_request):
         self.client.post_button_action('https://example.com/button-actions/', 'POST')
         mock_common_request.assert_called_once_with('https://example.com/button-actions/', 'POST')
 
-    # @patch('audio_client.AudioClient._common_request')
-    # def test_make_service_request(self, mock_common_request):
-    #     self.client.make_service_request()
-    #     mock_common_request.assert_called_once_with('https://example.com/api/users/me/service-requests/', 'POST')
+    @patch('audio_client.os_call')
+    @patch('audio_client.AudioClient._common_request')
+    def test_make_service_request(self, mock_common_request, mock_call):
+        mock_common_request.return_value = _Response(status_code=200)
+        return_val = self.client.make_service_request()
+        mock_call.assert_called_once_with(['aplay', './sounds/service-request-made.wav', ])
+        self.assertDictEqual(return_val, {'command': "service-request",
+                                          'result': "status-code.200"})
 
     @patch('audio_client.AudioClient._common_request')
     def test_post_content_signal(self, mock_common_request):

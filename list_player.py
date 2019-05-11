@@ -3,8 +3,11 @@ from conditional_imports import get_list_player_dependencies
 from typing import Optional, Union
 from copy import deepcopy
 from signals import ListPlayerConsumedSignal
+from logger import get_logger
 
 gi, vlc, Gtk, GLib, Thread = get_list_player_dependencies()
+
+logger = get_logger()
 
 
 # instance of this class must pause the play, collect the response and send it ...
@@ -88,10 +91,14 @@ class ListPlayer:
         :return:
         """
         if not self._injectable_content_list:
+            logger.info("no _injectable_content_list")
             return None
         _content = self._injectable_content_list.fetch_one()
         if _content is None:
+            logger.info("no injectable content fetched")
             return None
+
+        logger.info("there is injectable content and marked as delivered")
         _content.mark_delivery()
 
         # upload here.
@@ -102,6 +109,8 @@ class ListPlayer:
         Thread(target=_run_garbage_collection_and_upload).start()
 
         # todo there is jingle_url also but not currently playable in list_player
+        logger.info("Injectable content to be played, url: {url} & hash: {hash_}".format(url=_content.audio_url,
+                                                                                        hash_=_content.hash_))
         return Audio(url=_content.audio_url, hash_=_content.hash_)
 
     def check_upcoming_content(self):
@@ -113,6 +122,8 @@ class ListPlayer:
         self._content_follow_fn = None
 
         content = self._fetch_injectable_content()
+
+        logger.info("Is there an injectable content? {}".format(content is not None))
 
         try:
             content = content if content else self.queue.popleft()  # type: Audio

@@ -51,10 +51,18 @@ There are environment variables. All are supposed to be in `settings.py`.
 * Security issue? What to do with credentials to be used by someone else with some other hardware? Location-based 
 check? 
 
+## Environment Variables
+
+The following environment variables are in use. You can set `.envrc` file with these variable, which is used to generate `.envservice` by build scripts.
+
+* ENV: Environment, e.g. 'dev', 'test', 'stage', 'prod'
+* VIRTUAL_ENV_PATH: local directory path to virtual environment (e.g. /Users/cuneyt/Work/caressa_hw/venv/)
+* DISPLAY=:0
+
 ## Configuration
 
-* Copy `config.template.json` as `config.json`.
-* Fill these fields in `config.json`:
+* Copy `config.template.json` as `config.dev.json`.
+* Fill these fields in `config.dev.json`:
     * client ID and secret: Authentication server client ID and secret.
     * user's ID and hash: User credentials
 
@@ -67,18 +75,6 @@ For reference check `ls -l` output of a working version:
 `-rwxrwxrwx 1 root root 263 Nov 14 13:22 /etc/systemd/system/caressa.service` 
 * Finally, run `systemctl enable caressa.service` for enable the service for once.
 
-## Environment Variables
-
-The following environment variables are in use. You can set `.envrc` file with these variable, which is used to generate `.envservice` by build scripts.
-
-* ENV: Environment, e.g. 'dev', 'test', 'stage', 'prod'
-* VIRTUAL_ENV_PATH: local directory path to virtual environment (e.g. /Users/cuneyt/Work/caressa_hw/venv/)
-* Pusher Account Variables
-    * PUSHER_KEY_ID
-    * PUSHER_SECRET
-    * PUSHER_CLUSTER
-* WEB_SUBDOMAIN: Domain of the Caressa API
-
 ## Development
 
 * Install PyPi packages from requirements/dev.txt: `pip install -r requirements/dev.txt`
@@ -89,7 +85,10 @@ The following environment variables are in use. You can set `.envrc` file with t
 ## Running Tests
 
 * Set `ENV` to `'test'` in .envrc: `export ENV='test'` 
-* Install test requirements: `pip install -r requirements/test.txt`
+* Install test requirements: 
+    * `source ./scripts/init.sh`
+    * `pip install -r requirements/test.txt`
+    * `deactivate`
 * `coverage run -m unittest discover tests/`
 * `coverage report`
 

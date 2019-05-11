@@ -1,10 +1,16 @@
 {
   "api": {
+    "url": "api-url",
     "client_id": "some-client-id",
     "client_secret": "some-client-secret"
   },
   "user": {
     "id": "some-user-id",
     "hash": "some-hash"
+  },
+  "pusher": {
+    "key_id": "pusher-key-id",
+    "secret": "pusher-secret",
+    "cluster": "pusher-cluster"
   }
 }
