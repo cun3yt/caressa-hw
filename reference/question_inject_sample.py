@@ -7,12 +7,12 @@ import aiy.cloudspeech
 from list_player_vlc import ListPlayer, Audio
 from datetime import datetime
 
-from settings import SUBDOMAIN
+from settings import API_URL
 import requests
 import time
 
 
-SERVER_URL = '{}/speech-to-text'.format(SUBDOMAIN)
+SERVER_URL = '{}/speech-to-text'.format(API_URL)
 
 
 lp = ListPlayer()
