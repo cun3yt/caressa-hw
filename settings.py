@@ -31,6 +31,8 @@ PUSHER_KEY_ID = conf['pusher']['key_id']
 PUSHER_SECRET = conf['pusher']['secret']
 PUSHER_CLUSTER = conf['pusher']['cluster']
 
+SENTRY_DSN = conf['sentry']['dsn']
+
 USER_ACTIVITY_LOG = "{api_url}/api/user-activity-log/".format(api_url=API_URL)
 
 DATETIME_TZ_FORMAT = '%Y-%m-%d %H:%M:%S%z'
