@@ -10,11 +10,10 @@ from button import button_action
 from datetime import datetime
 
 from conditional_imports import get_main_dependencies
-import sentry_sdk
+
+gi, Gtk, GLib, Button, Thread, Pusher, sentry_sdk = get_main_dependencies()
 
 sentry_sdk.init(SENTRY_DSN)
-
-gi, Gtk, GLib, Button, Thread, Pusher = get_main_dependencies()
 
 LEFT_BLACK_BTN_ID = 7
 RIGHT_BLACK_BTN_ID = 8

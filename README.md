@@ -53,7 +53,8 @@ check?
 
 ## Environment Variables
 
-The following environment variables are in use. You can set `.envrc` file with these variable, which is used to generate `.envservice` by build scripts.
+The following environment variables are in use. You can set `.envrc` file with these variable, which is used to 
+generate `.envservice` by build scripts.
 
 * ENV: Environment, e.g. 'dev', 'test', 'stage', 'prod'
 * VIRTUAL_ENV_PATH: local directory path to virtual environment (e.g. /Users/cuneyt/Work/caressa_hw/venv/)

@@ -52,7 +52,8 @@ def get_main_dependencies():
         from gpiozero import Button
         from threading import Thread
         from pysher import Pusher
-        return gi, Gtk, GLib, Button, Thread, Pusher
+        import sentry_sdk
+        return gi, Gtk, GLib, Button, Thread, Pusher, sentry_sdk
 
     import tests.mock.mock_gi as gi
     gi.require_version('Gtk', '3.0')
@@ -60,4 +61,5 @@ def get_main_dependencies():
     from tests.mock.mock_gpiozero import Button
     from tests.mock.mock_threading import Thread
     from tests.mock.mock_pusher import Pusher
-    return gi, Gtk, GLib, Button, Thread, Pusher
+    from tests.mock import mock_sentry_sdk as sentry_sdk
+    return gi, Gtk, GLib, Button, Thread, Pusher, sentry_sdk
