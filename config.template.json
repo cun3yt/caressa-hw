@@ -12,5 +12,8 @@
     "key_id": "",
     "secret": "",
     "cluster": ""
+  },
+  "sentry": {
+    "dsn": ""
   }
 }

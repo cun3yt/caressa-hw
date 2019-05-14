@@ -12,5 +12,8 @@
     "key_id": "pusher-key-id",
     "secret": "pusher-secret",
     "cluster": "pusher-cluster"
+  },
+  "sentry": {
+    "dsn": "sentry-dsn"
   }
 }

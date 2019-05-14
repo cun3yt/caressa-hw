@@ -34,5 +34,7 @@ PUSHER_CLUSTER = conf['pusher']['cluster']
 USER_ACTIVITY_LOG = "{api_url}/api/user-activity-log/".format(api_url=API_URL)
 
 DATETIME_TZ_FORMAT = '%Y-%m-%d %H:%M:%S%z'
+
+SENTRY_DSN = conf['sentry']['dsn']
 # todo: Decide on asserting being non-null existence or full operation of some of the services here.
 # todo Should we unify all time related variables to epoch?

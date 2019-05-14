@@ -4,12 +4,15 @@ import pytz
 from audio_client import AudioClient
 from audio_player import AudioPlayer
 from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, \
-    USER_ID, USER_HASH, API_CLIENT_ID,API_CLIENT_SECRET, API_URL
+    USER_ID, USER_HASH, API_CLIENT_ID,API_CLIENT_SECRET, API_URL, SENTRY_DSN
 from logger import get_logger
 from button import button_action
 from datetime import datetime
 
 from conditional_imports import get_main_dependencies
+import sentry_sdk
+
+sentry_sdk.init(SENTRY_DSN)
 
 gi, Gtk, GLib, Button, Thread, Pusher = get_main_dependencies()
 
