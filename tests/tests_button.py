@@ -3,7 +3,7 @@ import responses
 
 from unittest.mock import patch
 
-from audio_client import AudioClient
+from api_client import AudioClient
 from button import button_action
 
 

@@ -7,7 +7,6 @@ class Response:
 
 
 class ApiClient:
-    # todo this class corresponds to AudioClient (to be renamed)
     def __init__(self, *args, **kwargs):
         pass
 

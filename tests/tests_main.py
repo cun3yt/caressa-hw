@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 from audio.models import Audio
 from audio_player import AudioPlayer
-from audio_client import AudioClient
+from api_client import AudioClient
 from tests.mock.mock_api_client import ApiClient
 from main import PusherService, setup_client, setup_realtime_update, connect_handler, setup_user_channels_and_player, main, handle_mail
 from settings import PUSHER_KEY_ID, PUSHER_CLUSTER, PUSHER_SECRET, API_URL
@@ -60,10 +60,10 @@ class TestMain(unittest.TestCase):
         self.assertIn('INFO:root:subscribe::channel.Z', context_manager.output)
 
     @patch('audio_player.AudioPlayer._get_first_audio')
-    @patch('audio_client.AudioClient.injectable_content_download_fn')
-    @patch('audio_client.AudioClient.injectable_content_fetch_available_content_fn')
-    @patch('audio_client.AudioClient.get_channels')
-    @patch('audio_client.AudioClient.get_user_data')
+    @patch('api_client.AudioClient.injectable_content_download_fn')
+    @patch('api_client.AudioClient.injectable_content_fetch_available_content_fn')
+    @patch('api_client.AudioClient.get_channels')
+    @patch('api_client.AudioClient.get_user_data')
     def test_setup_user_channels_and_player(self, mock_get_user_data, mock_get_channels,
                                             mock_injectable_content_fetch_available_content_fn,
                                             mock_inj_content_download_fn, mock_get_first_audio):
