@@ -1,5 +1,6 @@
 import unittest
-from list_player import Audio, ListPlayer
+from audio.models import Audio
+from list_player import ListPlayer
 import logging
 import pytz
 from injectable_content.list import List as InjectableContentList

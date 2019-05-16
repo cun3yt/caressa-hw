@@ -1,8 +1,8 @@
 import pytz
 import unittest
 from unittest.mock import patch
+from audio.models import Audio
 from audio_player import AudioPlayer
-from list_player import Audio
 from audio_client import AudioClient
 from tests.mock.mock_api_client import ApiClient
 from main import PusherService, setup_client, setup_realtime_update, connect_handler, setup_user_channels_and_player, main, handle_mail

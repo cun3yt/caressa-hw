@@ -3,7 +3,8 @@ from unittest.mock import patch
 from audio_player import AudioPlayer
 from tests.mock.mock_api_client import ApiClient
 from tests.mock.mock_aiy import voicehat
-from list_player import Audio, ListPlayer
+from audio.models import Audio
+from list_player import ListPlayer
 from state import State
 
 

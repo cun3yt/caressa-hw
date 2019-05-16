@@ -4,7 +4,8 @@ from button import button_action
 from logger import get_logger
 from inspect import stack as call_stack
 from state import State, StateStack
-from list_player import ListPlayer, Audio
+from audio.models import Audio
+from list_player import ListPlayer
 from utils import deep_get
 from injectable_content.models import InjectableContent
 from injectable_content.list import List as InjectableContentList
