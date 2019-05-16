@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 from audio_player import AudioPlayer
-from tests.mock.mock_api_client import ApiClient
+from tests.mock.mock_api_client import MockAPIClient
 from tests.mock.mock_aiy import voicehat
 from audio.models import Audio
 from list_player import ListPlayer
@@ -10,7 +10,7 @@ from state import State
 
 class TestAudioPlayerState(unittest.TestCase):
     def setUp(self):
-        self.api_client = ApiClient()
+        self.api_client = MockAPIClient()
         self.audio_player = AudioPlayer(self.api_client)
 
     def test_init(self):
@@ -63,7 +63,7 @@ class TestAudioPlayerState(unittest.TestCase):
 
 class TestCommands(unittest.TestCase):
     def setUp(self):
-        self.api_client = ApiClient()
+        self.api_client = MockAPIClient()
         self.audio_player = AudioPlayer(self.api_client)
 
     def test_button_press_what_next_initial(self):
@@ -176,7 +176,7 @@ class TestCommands(unittest.TestCase):
 
 class TestContentArrival(unittest.TestCase):
     def setUp(self):
-        self.api_client = ApiClient()
+        self.api_client = MockAPIClient()
         self.audio_player = AudioPlayer(self.api_client)
 
     def test_injectable_content_arrived(self):
@@ -251,7 +251,7 @@ class TestContentArrival(unittest.TestCase):
 
 class TestVolume(unittest.TestCase):
     def setUp(self):
-        self.api_client = ApiClient()
+        self.api_client = MockAPIClient()
         self.audio_player = AudioPlayer(self.api_client)
 
     @patch('tests.mock.mock_alsaaudio.Mixer.getvolume')
@@ -299,7 +299,7 @@ class TestVolume(unittest.TestCase):
 
 class TestNotifications(unittest.TestCase):
     def setUp(self):
-        self.api_client = ApiClient()
+        self.api_client = MockAPIClient()
         self.audio_player = AudioPlayer(self.api_client)
 
     @patch('audio_player.os_call')

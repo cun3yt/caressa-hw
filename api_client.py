@@ -9,9 +9,7 @@ from subprocess import call as os_call
 logger = get_logger()
 
 
-class AudioClient:
-    # todo rename the class as `APIClient`
-
+class APIClient:
     def __init__(self, url, **kwargs):
         self._url = url
         self.streaming_url = '{}/streaming'.format(url)

@@ -6,7 +6,7 @@ class Response:
         self.text = text
 
 
-class ApiClient:
+class MockAPIClient:
     def __init__(self, *args, **kwargs):
         pass
 
