@@ -25,5 +25,25 @@ class Audio:
 
 
 class AggregateAudio:
-    # ordered_list_of_audio_files
-    pass
+    def __init__(self, *args):
+        self.list_of_audios = []
+        self._index = 0
+
+        for arg in args:
+            self.list_of_audios.append(arg)
+
+    def __len__(self):
+        return len(self.list_of_audios)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._index >= len(self.list_of_audios):
+            raise StopIteration
+        item = self.list_of_audios[self._index]
+        self._index = self._index + 1
+        return item
+
+    def append(self, audio: Audio):
+        self.list_of_audios.append(audio)
