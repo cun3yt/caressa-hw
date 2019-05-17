@@ -122,6 +122,8 @@ class ListPlayer:
         GLib.idle_add(lambda: self.vlc_player.pause())
 
     def add_content(self, content, to_top=False):
+        # todo this needs to handle AggregateAudio
+
         assert isinstance(content, dict) or isinstance(content, Audio), (
             "content is supposed to be either dict or Audio, found: {}".format(type(content))
         )

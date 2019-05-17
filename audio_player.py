@@ -279,10 +279,11 @@ class AudioPlayer:
         current_state = State(current_player='main', playing_state=False, audio=audio)  # type: State
         return main_player, voice_mail_player, urgent_mail_player, players, current_state
 
-    def _queue_up(self):
-        # todo: Sometimes causing json decode problem, can a solution be repeated requests?
-        logger.info("{} is called".format(call_stack()[0][3]))
-        response = self.client.send_playback_nearly_finished_signal()
+    @staticmethod
+    def _get_response_to_audio(response):
+        """
+        Purpose: Parsing the HTTP response to get the audio (url, hash) and the token
+        """
 
         try:
             res_body = json.loads(response.text)
@@ -292,11 +293,21 @@ class AudioPlayer:
 
         directive = deep_get(res_body, 'response.directives')[0]
         assert(deep_get(directive, 'type') == 'AudioPlayer.Play')
-        assert(deep_get(directive, 'playBehavior') == 'ENQUEUE')
         stream = deep_get(directive, 'audioItem.stream')
 
-        self.main_player.add_content({'url': stream.get('url'), 'hash': stream.get('hash')})
-        self.token = stream.get('token')
+        audio = Audio(url=stream.get('url'), hash_=stream.get('hash'))
+        token = stream.get('token')
+        return audio, token
+
+    def _queue_up(self):
+        # todo: Sometimes causing json decode problem, can a solution be repeated requests?
+        logger.info("{} is called".format(call_stack()[0][3]))
+        response = self.client.send_playback_nearly_finished_signal()
+
+        audio, token = self._get_response_to_audio(response)
+
+        self.main_player.add_content(audio)
+        self.token = token
 
     def _content_started(self, *args, **kwargs):
         logger.info("_content_started is called (probably callback call)")
@@ -306,14 +317,10 @@ class AudioPlayer:
     def _get_first_audio(self) -> Audio:
         logger.info("{} is called".format(call_stack()[0][3]))
         response = self.client.launch()
-        res_body = json.loads(response.text)
-        directive = deep_get(res_body, 'response.directives')[0]
-        assert (deep_get(directive, 'type') == 'AudioPlayer.Play')
-        audio_url = deep_get(directive, 'audioItem.stream.url')
-        audio_hash = deep_get(directive, 'audioItem.stream.hash')
-        token = deep_get(directive, 'audioItem.stream.token')
+
+        audio, token = self._get_response_to_audio(response)
         self.token = token
-        return Audio(url=audio_url, hash_=audio_hash)
+        return audio
 
     def _play(self):
         logger.info("{} is called, current_player: {}".format(call_stack()[0][3], self.current_player_name))
