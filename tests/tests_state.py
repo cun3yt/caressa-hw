@@ -1,6 +1,6 @@
 import unittest
 from state import State, StateStack
-from list_player import Audio
+from audio.models import Audio
 
 
 class TestState(unittest.TestCase):

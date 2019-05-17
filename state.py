@@ -1,7 +1,7 @@
 from collections import deque
 from copy import deepcopy
 from logger import get_logger
-from list_player import Audio
+from audio.models import Audio
 
 
 logger = get_logger()

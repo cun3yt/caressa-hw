@@ -3,15 +3,15 @@ import responses
 
 from unittest.mock import patch
 
-from audio_client import AudioClient
+from api_client import APIClient
 from button import button_action
 
 
 class TestAudioClient(unittest.TestCase):
     def setUp(self) -> None:
-        self.client = AudioClient('https://example.com/api/', user_id=1,
-                                  user_password='abcd', client_id='some-client-id',
-                                  client_secret='some-client-secret')
+        self.client = APIClient('https://example.com/api/', user_id=1,
+                                user_password='abcd', client_id='some-client-id',
+                                client_secret='some-client-secret')
 
     # todo Check other wrong patches (they silently fail!!)
     @patch('button._post_user_action')

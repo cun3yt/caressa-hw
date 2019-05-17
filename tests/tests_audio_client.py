@@ -2,7 +2,7 @@ import unittest
 import responses
 import json
 
-from audio_client import AudioClient
+from api_client import APIClient
 from unittest.mock import patch
 from urllib.parse import parse_qs
 
@@ -15,54 +15,54 @@ class _Response:
 
 class TestAudioClient(unittest.TestCase):
     def setUp(self):
-        self.client = AudioClient('https://example.com', client_id=1234, client_secret='abcd', user_id=5678,
-                                  user_password='qwerasdf1234')
+        self.client = APIClient('https://example.com', client_id=1234, client_secret='abcd', user_id=5678,
+                                user_password='qwerasdf1234')
 
     def test_invalid_initialization(self):
-        self.assertRaises(AssertionError, AudioClient, 'https://example.com')
-        self.assertRaises(AssertionError, AudioClient, 'https://example.com', client_id=1234)
-        self.assertRaises(AssertionError, AudioClient, 'https://example.com', client_id=1234, client_secret='abcd')
-        self.assertRaises(AssertionError, AudioClient, 'https://example.com', client_id=1234, user_id=5678)
-        self.assertRaises(AssertionError, AudioClient, 'https://example.com', client_secret='abcd', user_id=5678)
+        self.assertRaises(AssertionError, APIClient, 'https://example.com')
+        self.assertRaises(AssertionError, APIClient, 'https://example.com', client_id=1234)
+        self.assertRaises(AssertionError, APIClient, 'https://example.com', client_id=1234, client_secret='abcd')
+        self.assertRaises(AssertionError, APIClient, 'https://example.com', client_id=1234, user_id=5678)
+        self.assertRaises(AssertionError, APIClient, 'https://example.com', client_secret='abcd', user_id=5678)
 
     def test_initialization(self):
         try:
-            audio_client = AudioClient('https://example.com', client_id=1234, client_secret='abcd', user_id=5678)
+            api_client = APIClient('https://example.com', client_id=1234, client_secret='abcd', user_id=5678)
         except Exception:
             self.fail('No exception is expected')
 
-        self.assertEqual(audio_client.streaming_url, 'https://example.com/streaming')
-        self.assertEqual(audio_client.channel_url, 'https://example.com/api/users/me/channels/')
-        self.assertEqual(audio_client.user_id, 5678)
-        self.assertEqual(audio_client.client_secret, 'abcd')
-        self.assertEqual(audio_client.user_password, '')
-        self.assertIsNone(audio_client.access_token)
-        self.assertIsNone(audio_client.refresh_token)
+        self.assertEqual(api_client.streaming_url, 'https://example.com/streaming')
+        self.assertEqual(api_client.channel_url, 'https://example.com/api/users/me/channels/')
+        self.assertEqual(api_client.user_id, 5678)
+        self.assertEqual(api_client.client_secret, 'abcd')
+        self.assertEqual(api_client.user_password, '')
+        self.assertIsNone(api_client.access_token)
+        self.assertIsNone(api_client.refresh_token)
 
     def test_initialization_with_password(self):
-        audio_client = AudioClient('https://example.com', client_id=1234, client_secret='abcd', user_id=5678,
-                                   user_password='qwerasdf1234')
+        api_client = APIClient('https://example.com', client_id=1234, client_secret='abcd', user_id=5678,
+                               user_password='qwerasdf1234')
 
-        self.assertEqual(audio_client.user_id, 5678)
-        self.assertEqual(audio_client.user_password, 'qwerasdf1234')
+        self.assertEqual(api_client.user_id, 5678)
+        self.assertEqual(api_client.user_password, 'qwerasdf1234')
 
-    @patch('audio_client.AudioClient._common_request')
+    @patch('api_client.APIClient._common_request')
     def test_get_user_data(self, mock_common_request):
         self.client.get_user_data()
         mock_common_request.assert_called_once_with('https://example.com/api/users/me/')
 
-    @patch('audio_client.AudioClient._common_request')
+    @patch('api_client.APIClient._common_request')
     def test_fetching_channels(self, mock_common_request):
         self.client.get_channels()
         mock_common_request.assert_called_once_with('https://example.com/api/users/me/channels/')
 
-    @patch('audio_client.AudioClient._common_request')
+    @patch('api_client.APIClient._common_request')
     def test_post_button_action(self, mock_common_request):
         self.client.post_button_action('https://example.com/button-actions/', 'POST')
         mock_common_request.assert_called_once_with('https://example.com/button-actions/', 'POST')
 
-    @patch('audio_client.os_call')
-    @patch('audio_client.AudioClient._common_request')
+    @patch('api_client.os_call')
+    @patch('api_client.APIClient._common_request')
     def test_make_service_request(self, mock_common_request, mock_call):
         mock_common_request.return_value = _Response(status_code=200)
         return_val = self.client.make_service_request()
@@ -70,7 +70,7 @@ class TestAudioClient(unittest.TestCase):
         self.assertDictEqual(return_val, {'command': "service-request",
                                           'result': "status-code.200"})
 
-    @patch('audio_client.AudioClient._common_request')
+    @patch('api_client.APIClient._common_request')
     def test_post_content_signal(self, mock_common_request):
         self.client.post_content_signal(hash_='abcde12345', signal='negative')
         mock_common_request.assert_called_once_with('https://example.com/api/audio-files/me/signal/',
@@ -78,7 +78,7 @@ class TestAudioClient(unittest.TestCase):
                                                     body={'hash': 'abcde12345', 'signal': 'negative'})
 
     @responses.activate
-    @patch('audio_client.AudioClient._authenticate')
+    @patch('api_client.APIClient._authenticate')
     def test_get_channels_no_access_token(self, mock_authenticate):
         def _set_access_token():
             self.client.access_token = 'some-access-token'
@@ -111,7 +111,7 @@ class TestAudioClient(unittest.TestCase):
         self.assertEqual(response_dict['channels'], ['channel.X', 'channel.Y'])
 
     @responses.activate
-    @patch('audio_client.AudioClient._authenticate')
+    @patch('api_client.APIClient._authenticate')
     def test_get_channels_with_access_token(self, mock_authenticate):
         self.client.access_token = 'some-access-token'
         self.client.refresh_token = 'some-refresh-token'
@@ -125,8 +125,8 @@ class TestAudioClient(unittest.TestCase):
         mock_authenticate.assert_not_called()
 
     @responses.activate
-    @patch('audio_client.AudioClient._authenticate')
-    @patch('audio_client.AudioClient._refresh_access_token')
+    @patch('api_client.APIClient._authenticate')
+    @patch('api_client.APIClient._refresh_access_token')
     def test_get_channels_with_invalid_access_and_invalid_refresh(self, mock_refresh, mock_authenticate):
         self.client.access_token = 'invalid-access-token'
         self.client.refresh_token = 'some-refresh-token'
@@ -144,7 +144,7 @@ class TestAudioClient(unittest.TestCase):
         mock_authenticate.assert_called_once_with()
 
     @responses.activate
-    @patch('audio_client.AudioClient._refresh_access_token')
+    @patch('api_client.APIClient._refresh_access_token')
     def test_get_channels_invalid_access_code(self, mock_refresh):
         self.client.access_token = 'some-access-token'
         responses.add(method=responses.GET,
@@ -166,8 +166,8 @@ class TestAudioClient(unittest.TestCase):
         self.assertEqual(response_dict['channels'], ['channel.X', 'channel.Y'])
 
     @responses.activate
-    @patch('audio_client.AudioClient._authenticate')
-    @patch('audio_client.AudioClient._refresh_access_token')
+    @patch('api_client.APIClient._authenticate')
+    @patch('api_client.APIClient._refresh_access_token')
     def test_get_channels_refresh_token_failure(self, mock_refresh, mock_authenticate):
         def _set_access_token():
             self.client.access_token = 'new-access-token'
@@ -196,12 +196,12 @@ class TestAudioClient(unittest.TestCase):
         response_dict = json.loads(response.text)
         self.assertEqual(response_dict['channels'], ['channel.X', 'channel.Y'])
 
-    @patch('audio_client.AudioClient._streaming_request')
+    @patch('api_client.APIClient._streaming_request')
     def test_launch(self, mock_streaming_request):
         self.client.launch()
         mock_streaming_request.assert_called_once_with(request_type='LaunchRequest')
 
-    @patch('audio_client.AudioClient._common_request')
+    @patch('api_client.APIClient._common_request')
     def test_launch_stream(self, mock_common_request):
         self.client.launch()
         mock_common_request.assert_called_once_with('https://example.com/streaming',
@@ -273,22 +273,22 @@ class TestAudioClient(unittest.TestCase):
         self.assertEqual(query_params['client_id'][0], '1234')
         self.assertEqual(query_params['client_secret'][0], 'abcd')
 
-    @patch('audio_client.AudioClient._streaming_request')
+    @patch('api_client.APIClient._streaming_request')
     def test_pause(self, mock_streaming_request):
         self.client.pause()
         mock_streaming_request.assert_called_once_with(request_type='PlaybackController.PauseCommandIssued')
 
-    @patch('audio_client.AudioClient._streaming_request')
+    @patch('api_client.APIClient._streaming_request')
     def test_playback_nearly_finished(self, mock_streaming_request):
         self.client.send_playback_nearly_finished_signal()
         mock_streaming_request.assert_called_once_with(request_type='AudioPlayer.PlaybackNearlyFinished')
 
-    @patch('audio_client.AudioClient._streaming_request')
+    @patch('api_client.APIClient._streaming_request')
     def test_playback_started(self, mock_streaming_request):
         self.client.send_playback_started_signal('token-value')
         mock_streaming_request.assert_called_once_with(request_type='AudioPlayer.PlaybackStarted', token='token-value')
 
-    @patch('audio_client.AudioClient._common_request')
+    @patch('api_client.APIClient._common_request')
     def test_injectable_content_download_fn(self, mock_common_request):
         mock_common_request.return_value = _Response(status_code=200,
                                                      text='{"injected_content_repository": '
@@ -297,7 +297,7 @@ class TestAudioClient(unittest.TestCase):
         res = self.client.injectable_content_download_fn()
         self.assertEqual(json.loads(res), [{"audio_url": "https://example.com/audio1.mp3", "hash": "abc123"}])
 
-    @patch('audio_client.AudioClient._common_request')
+    @patch('api_client.APIClient._common_request')
     def test_injectable_content_upload_fn(self, mock_common_request):
         content = '[{"audio_url": "https://example.com/audio1.mp3", "hash": "abc123"}]'
         self.client.injectable_content_upload_fn(content)
@@ -308,7 +308,7 @@ class TestAudioClient(unittest.TestCase):
                                                          "hash": "abc123", }
                                                     ]})
 
-    @patch('audio_client.AudioClient._common_request')
+    @patch('api_client.APIClient._common_request')
     def test_injectable_content_fetch_available_content_fn(self, mock_common_request):
         mock_common_request.return_value = _Response(status_code=200,
                                                      text='{"results": '

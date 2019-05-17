@@ -19,7 +19,7 @@ def button_action(user_action, callback_fn, client, user_activity_log_url=USER_A
 
     :param user_action: Definition of the action done on the button, e.g. 'press.volume'
     :param callback_fn: Callback function of the button that does the actual work
-    :param client: AudioClient to make actual HTTP POST request
+    :param client: APIClient to make actual HTTP POST request
     :param user_activity_log_url: End point for logging
     :return:
     """
