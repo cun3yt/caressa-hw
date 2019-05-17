@@ -4,7 +4,7 @@ from typing import Optional, Union
 from copy import deepcopy
 from signals import ListPlayerConsumedSignal
 from logger import get_logger
-from audio.models import Audio
+from audio.models import Audio, AggregateAudio
 
 gi, vlc, Gtk, GLib, Thread = get_list_player_dependencies()
 
@@ -25,7 +25,6 @@ class ListPlayer:
         self._list_finished_callback = kwargs.get('list_finished_callback', lambda: 0)
 
         self._bind_default_events()
-        self._content_follow_fn = None      # current content's follow up function if any
 
     def set_injectable_content_list(self, injectable_content_list):
         """
@@ -46,20 +45,13 @@ class ListPlayer:
             self.vlc_player.play()
             return None
 
-        if self._content_follow_fn:     # todo: audit if this is the right place for this callback?
-            fn, self._content_follow_fn = self._content_follow_fn, None
-            self.pause()
-            fn()
-            self.play()
-            return None
-
         if self.count < 1:
             self._list_finished_callback()
             return None
 
         return self.play_next()
 
-    def _fetch_injectable_content(self):
+    def _fetch_injectable_content(self) -> Optional['Audio']:
         """
         This function is overloaded in terms of responsibilities
 
@@ -94,19 +86,17 @@ class ListPlayer:
         return deepcopy(self.queue[0])
 
     def play_next(self) -> Union['Audio', 'type']:
-        self._content_follow_fn = None
-
         content = self._fetch_injectable_content()
 
         logger.info("Is there an injectable content? {}".format(content is not None))
 
         try:
-            content = content if content else self.queue.popleft()  # type: Audio
+            if not content:
+                agg_audio = self.queue.popleft()
+                content = next(agg_audio)
         except IndexError:
             # There is no content to play in the queue
             return ListPlayerConsumedSignal
-
-        self._content_follow_fn = content.follow_up_fn
 
         def _play():
             # todo this is the place to update the state!
@@ -122,16 +112,18 @@ class ListPlayer:
         GLib.idle_add(lambda: self.vlc_player.pause())
 
     def add_content(self, content, to_top=False):
-        # todo this needs to handle AggregateAudio
-
-        assert isinstance(content, dict) or isinstance(content, Audio), (
-            "content is supposed to be either dict or Audio, found: {}".format(type(content))
+        assert isinstance(content, dict) or isinstance(content, Audio) \
+               or isinstance(content, AggregateAudio), (
+            "content is supposed to be one of these types: "
+            "[dict, Audio, AggregateAudio], found: {}".format(type(content))
         )
 
         if isinstance(content, dict):
             hash_ = content.get('hash', content.get('hash_'))
-            content = Audio(url=content.get('url'), hash_=hash_,
-                            follow_up_fn=content.get('follow_up_fn'))
+            content = Audio(url=content.get('url'), hash_=hash_)
+
+        # wrap with `AggregateAudio`
+        content = AggregateAudio(content) if isinstance(content, Audio) else content
 
         if to_top:
             self.queue.appendleft(content)
@@ -154,17 +146,3 @@ class ListPlayer:
 
     def __str__(self):
         return "List Player with {} element(s)".format(self.count)
-
-
-if __name__ == '__main__':
-    lp = ListPlayer()
-
-    def _internal(*args, **kwargs):
-        print("hello!")
-
-    lp.add_content(
-        content=Audio(url='https://s3-us-west-1.amazonaws.com/caressa-prod/development-related/test-song-1.mp3',
-                      hash_='sample-hash',
-                      follow_up_fn=_internal))
-    lp.play()
-    Gtk.main()

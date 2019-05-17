@@ -129,6 +129,7 @@ class DeliveryRule:
 
 
 class InjectableContent:
+    # todo needs to support AggregateAudio
     def __init__(self, *, audio_url, hash_, **kwargs):
         self._audio_url = audio_url
         self._hash_ = hash_

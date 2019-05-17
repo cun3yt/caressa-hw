@@ -2,11 +2,16 @@ import unittest
 from audio.models import Audio, AggregateAudio
 
 
-class TestAudioFile(unittest.TestCase):
-    def test_audio_file_init(self):
+class TestAudio(unittest.TestCase):
+    def test_init(self):
         audio_file = Audio(url='https://example.com/audio1.mp3', hash_='abcd1234')
         self.assertEqual(audio_file.url, 'https://example.com/audio1.mp3')
         self.assertEqual(audio_file.hash, 'abcd1234')
+
+    def test_audio_set(self):
+        audio = Audio(url='http://example.com/audio.mp3', hash_='abcd1234')
+        self.assertEqual(audio.url, 'http://example.com/audio.mp3')
+        self.assertEqual(audio.hash, 'abcd1234')
 
 
 class TestAggregateAudio(unittest.TestCase):

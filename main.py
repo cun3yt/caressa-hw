@@ -168,7 +168,3 @@ def main():
     Gtk.main()
 
     return volume_up_btn, volume_down_btn, next_btn, service_btn, yes_liked_btn
-
-
-if __name__ == '__main__':
-    main()

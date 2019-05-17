@@ -322,6 +322,21 @@ class AudioPlayer:
         self.token = token
         return audio
 
+        # stream = deep_get(directive, 'audioItem.stream')
+        #
+        # if stream:
+        #     audio_url = deep_get(stream, 'url')
+        #     audio_hash = deep_get(stream, 'hash')
+        #     token = deep_get(stream, 'token')
+        #     self.token = token
+        #     return Audio(url=audio_url, hash_=audio_hash)
+        #
+        # stream_list = deep_get(directive, 'audioItem.streamList')
+        #
+        # assert isinstance(stream_list, list), (
+        #     "audioItem.streamList supposed to be a list"
+        # )
+
     def _play(self):
         logger.info("{} is called, current_player: {}".format(call_stack()[0][3], self.current_player_name))
         audio = self.player.play()
