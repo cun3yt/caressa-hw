@@ -10,10 +10,11 @@ from utils import deep_get
 from injectable_content.models import InjectableContent
 from injectable_content.list import List as InjectableContentList
 from signals import ListPlayerConsumedSignal
+import time
 
 from conditional_imports import get_audio_player_dependencies
 
-os_call, Thread, AlsaMixer, alsa_mixers, voicehat = get_audio_player_dependencies()
+os_call, Thread, AlsaMixer, alsa_mixers, voicehat, main_button_diff_time = get_audio_player_dependencies()
 
 
 _BTN_DEBOUNCE_TIME = 0.15
@@ -43,6 +44,7 @@ class AudioPlayer:
     def __init__(self, api_client, **kwargs):
         self.client = api_client
         self.token = None
+        self.previous_activation_time = time.time()
 
         self._mixer = AlsaMixer(alsa_mixers()[0])
 
@@ -93,6 +95,9 @@ class AudioPlayer:
         """
         Purpose: Main Button Handler
         """
+        if  time.time() < self.previous_activation_time + main_button_diff_time:
+            logger.info('button bounce prevented')
+            return None
 
         logger.info("button_press_on_off, voice-mail count: {}".format(self.voice_mail_player.count))
 
@@ -104,6 +109,7 @@ class AudioPlayer:
             self.current_state = State(current_player='voice-mail', playing_state=False, audio=audio)
 
         fn = self.play_pause()
+        self.previous_activation_time = time.time()
         return {'command': 'main',
                 'player': self.current_player_name,
                 'result': "fn-call.{}".format(getattr(fn, '__name__', fn))}

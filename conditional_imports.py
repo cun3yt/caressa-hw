@@ -35,13 +35,15 @@ def get_audio_player_dependencies():
         from threading import Thread
         from alsaaudio import Mixer as AlsaMixer, mixers as alsa_mixers
         from aiy import voicehat
-        return os_call, Thread, AlsaMixer, alsa_mixers, voicehat
+        main_button_diff_time = 0.5
+        return os_call, Thread, AlsaMixer, alsa_mixers, voicehat, main_button_diff_time
 
     from tests.mock.mock_subprocess import call as os_call
     from tests.mock.mock_threading import Thread
     from tests.mock.mock_alsaaudio import Mixer as AlsaMixer, mixers as alsa_mixers
     from tests.mock.mock_aiy import voicehat
-    return os_call, Thread, AlsaMixer, alsa_mixers, voicehat
+    main_button_diff_time = 0
+    return os_call, Thread, AlsaMixer, alsa_mixers, voicehat, main_button_diff_time
 
 
 def get_main_dependencies():
