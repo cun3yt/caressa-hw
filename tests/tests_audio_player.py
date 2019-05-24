@@ -1,3 +1,4 @@
+import time
 import unittest
 from unittest.mock import patch
 from audio_player import AudioPlayer
@@ -65,6 +66,10 @@ class TestCommands(unittest.TestCase):
     def setUp(self):
         self.api_client = MockAPIClient()
         self.audio_player = AudioPlayer(self.api_client)
+
+    def test_button_press_debounce_prevention(self):
+        self.audio_player.previous_activation_time = time.time() + 1000
+        self.assertIsNone(self.audio_player.button_press_on_off())
 
     def test_button_press_what_next_initial(self):
         self.audio_player.button_press_on_off()
